@@ -31,6 +31,7 @@ import androidx.annotation.Nullable;
 
 import com.example.mdp_group31.R;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -797,6 +798,13 @@ public class GridMap extends View {
                             Logd("newID = " + newID);
                             Logd("newBearing = " + newBearing);
 
+                            // TODO
+                            // pass newID and newBearing over via BT
+                            String sentText = newID + " " + newBearing;
+                            if (BluetoothConnectionService.BluetoothConnectionStatus) {
+                                byte[] bytes = sentText.getBytes(Charset.defaultCharset());
+                                BluetoothConnectionService.write(bytes);
+                            }
                             callInvalidate();
                         }
                     });
