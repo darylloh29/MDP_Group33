@@ -636,6 +636,7 @@ public class GridMap extends View {
         if ((dragEvent.getAction() == DragEvent.ACTION_DRAG_ENDED)
                 && (endColumn == -999 || endRow == -999) && !dragEvent.getResult()) {
             // check if 2 arrays are same, then remove
+            Logd("Running parent if clause");
             for (int i = 0; i < obstacleCoord.size(); i++) {
                 if (Arrays.equals(obstacleCoord.get(i), new int[]{initialColumn - 1, initialRow - 1}))
                     obstacleCoord.remove(i);
@@ -656,6 +657,7 @@ public class GridMap extends View {
             }
             // if dropped within mapview but outside drawn grids, remove obstacle from lists
             else if (endColumn <= 0 || endRow <= 0) {
+                Logd("Running second else if clause");
                 for (int i = 0; i < obstacleCoord.size(); i++) {
                     if (Arrays.equals(obstacleCoord.get(i),
                             new int[]{initialColumn - 1, initialRow - 1}))
@@ -670,6 +672,7 @@ public class GridMap extends View {
                     && (1 <= initialRow && initialRow <= 20)
                     && (1 <= endColumn && endColumn <= 20)
                     && (1 <= endRow && endRow <= 20)) {
+                Logd("Running third else if clause");
                 tempID = ITEM_LIST.get(initialRow-1)[initialColumn-1];
                 tempBearing = imageBearings.get(initialRow-1)[initialColumn-1];
 
@@ -698,6 +701,7 @@ public class GridMap extends View {
                 + ", initialRow = " + initialRow
                 + "\nendColumn = " + endColumn
                 + ", endRow = " + endRow);
+
         this.invalidate();
         return true;
     }
@@ -711,6 +715,8 @@ public class GridMap extends View {
     public boolean onTouchEvent(MotionEvent event) {
         Logd("Entering onTouchEvent");
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            Logd(String.valueOf(event.getX()));
+            Logd(String.valueOf(event.getY()));
             int column = (int) (event.getX() / cellSize);
             int row = this.convertRow((int) (event.getY() / cellSize));
             initialColumn = column;
@@ -732,6 +738,13 @@ public class GridMap extends View {
                 }
                 DragShadowBuilder dragShadowBuilder = new MyDragShadowBuilder(this);
                 this.startDrag(null, dragShadowBuilder, null, 0);
+                // TODO
+                // pass updated col and row over via BT
+                String sentText = initialColumn + " " + initialRow + ";" + endColumn + endRow;
+                if (BluetoothConnectionService.BluetoothConnectionStatus) {
+                    byte[] bytes = sentText.getBytes(Charset.defaultCharset());
+                    BluetoothConnectionService.write(bytes);
+                }
             }
 
             // start change obstacle
@@ -772,7 +785,8 @@ public class GridMap extends View {
                     if (imageId.equals("")||imageId.equals("Nil")) {
                         mIDSpinner.setSelection(0);
                     } else {
-                        mIDSpinner.setSelection(Integer.parseInt(imageId) - 1);
+                        imageId = imageId.substring(2);
+                        mIDSpinner.setSelection(Integer.parseInt(imageId));
                     }
                     switch (imageBearing) {
                         case "North": mBearingSpinner.setSelection(0);
