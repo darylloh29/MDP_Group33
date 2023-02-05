@@ -696,6 +696,16 @@ public class GridMap extends View {
             } else {
                 Logd("Drag event failed.");
             }
+
+            // TODO
+            // pass updated location over BT
+            // only put in this else if clause so that the BT msg is only sent when it is
+            // ACTION_DROP!!
+            String sentText = initialRow + " " + initialColumn + "; " + endRow + " " + endColumn;
+            if (BluetoothConnectionService.BluetoothConnectionStatus) {
+                byte[] bytes = sentText.getBytes(Charset.defaultCharset());
+                BluetoothConnectionService.write(bytes);
+            }
         }
         Logd("initialColumn = " + initialColumn
                 + ", initialRow = " + initialRow
@@ -738,13 +748,6 @@ public class GridMap extends View {
                 }
                 DragShadowBuilder dragShadowBuilder = new MyDragShadowBuilder(this);
                 this.startDrag(null, dragShadowBuilder, null, 0);
-                // TODO
-                // pass updated col and row over via BT
-                String sentText = initialColumn + " " + initialRow + ";" + endColumn + endRow;
-                if (BluetoothConnectionService.BluetoothConnectionStatus) {
-                    byte[] bytes = sentText.getBytes(Charset.defaultCharset());
-                    BluetoothConnectionService.write(bytes);
-                }
             }
 
             // start change obstacle
