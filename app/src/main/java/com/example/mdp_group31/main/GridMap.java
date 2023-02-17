@@ -29,6 +29,7 @@ import android.widget.ToggleButton;
 
 import androidx.annotation.Nullable;
 
+import com.example.mdp_group31.MainActivity;
 import com.example.mdp_group31.R;
 
 import java.nio.charset.Charset;
@@ -638,12 +639,17 @@ public class GridMap extends View {
             // check if 2 arrays are same, then remove
             Logd("Running parent if clause");
             for (int i = 0; i < obstacleCoord.size(); i++) {
-                if (Arrays.equals(obstacleCoord.get(i), new int[]{initialColumn - 1, initialRow - 1}))
+                if (Arrays.equals(obstacleCoord.get(i), new int[]{initialColumn - 1, initialRow - 1})) {
                     obstacleCoord.remove(i);
+                    Logd("Removed obstacle that is out of bound");
+                }
             }
             cells[initialColumn][20-initialRow].setType("unexplored");
             ITEM_LIST.get(initialRow-1)[initialColumn-1] = "";
             imageBearings.get(initialRow-1)[initialColumn-1] = "";
+
+            String sentText = initialRow + " " + initialColumn + "; " + endRow + " " + endColumn;
+            MainActivity.printMessage(sentText);
         }
         // drop within gridmap
         else if (dragEvent.getAction() == DragEvent.ACTION_DROP) {
@@ -702,10 +708,7 @@ public class GridMap extends View {
             // only put in this else if clause so that the BT msg is only sent when it is
             // ACTION_DROP!!
             String sentText = initialRow + " " + initialColumn + "; " + endRow + " " + endColumn;
-            if (BluetoothConnectionService.BluetoothConnectionStatus) {
-                byte[] bytes = sentText.getBytes(Charset.defaultCharset());
-                BluetoothConnectionService.write(bytes);
-            }
+            MainActivity.printMessage(sentText);
         }
         Logd("initialColumn = " + initialColumn
                 + ", initialRow = " + initialRow
@@ -1407,6 +1410,10 @@ public class GridMap extends View {
     // wk 8 task
     public boolean updateIDFromRpi(String obstacleID, String imageID) {
         Logd("starting updateIDFromRpi");
+        for (int i = 0; i < obstacleCoord.size(); i ++) {
+            Logd(Integer.toString(obstacleCoord.get(i)[0]));
+            Logd(Integer.toString(obstacleCoord.get(i)[1]));
+        }
         int x = obstacleCoord.get(Integer.parseInt(obstacleID) - 1)[0];
         int y = obstacleCoord.get(Integer.parseInt(obstacleID) - 1)[1];
         ITEM_LIST.get(y)[x] = (imageID.equals("-1")) ? "" : imageID;
