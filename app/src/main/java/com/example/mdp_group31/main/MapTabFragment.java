@@ -138,12 +138,11 @@ public class MapTabFragment extends Fragment {
             public void onClick(View view) {
                 mapPref = getContext().getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
                 String obsPos = mapPref.getString("maps","");
-                if(obsPos.equals("")){}
-                else{
+                if(! obsPos.equals("")) {
                     String[] obstaclePosition = obsPos.split("\\|");
                     for (String s : obstaclePosition) {
                         String[] coords = s.split(",");
-                        gridMap.setObstacleCoord(Integer.parseInt(coords[0]) + 1, Integer.parseInt(coords[1]) + 1);
+                        gridMap.setObstacleCoord(Integer.parseInt(coords[0]) + 1, Integer.parseInt(coords[1]) + 1, coords[2]);
                         String direction = "";
                         switch (coords[2]) {
                             case "N":
@@ -190,7 +189,7 @@ public class MapTabFragment extends Fragment {
                     gridMap.setSetObstacleStatus(true);
                     gridMap.toggleCheckedBtn("obstacleImageBtn");
                 }
-                else if (gridMap.getSetObstacleStatus()) {
+                else {
                     gridMap.setSetObstacleStatus(false);
                 }
 
@@ -205,17 +204,6 @@ public class MapTabFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 showLog("Clicked updateButton");
-
-                gridMap.imageBearings.get(9)[5] = "South";
-                gridMap.imageBearings.get(15)[15] = "South";
-                gridMap.imageBearings.get(14)[7] = "West";
-                gridMap.imageBearings.get(4)[15] = "West";
-                gridMap.imageBearings.get(9)[12] = "East";
-                gridMap.setObstacleCoord(5+1, 9+1);
-                gridMap.setObstacleCoord(15+1, 15+1);
-                gridMap.setObstacleCoord(7+1, 14+1);
-                gridMap.setObstacleCoord(15+1, 4+1);
-                gridMap.setObstacleCoord(12+1, 9+1);
                 gridMap.invalidate();
                 showLog("Exiting updateButton");
             }

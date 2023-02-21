@@ -80,6 +80,9 @@ public class GridMap extends View {
 
     private boolean mapDrawn = false;
 
+    // 2D array of the grid which stores the obstacles
+    // if the cell has an obstacle, ITEM_LIST[i][j] stores the obstacle ID "OB<no>"
+    // else it stores only an empty string ""
     public ArrayList<String[]> ITEM_LIST = new ArrayList<>(Arrays.asList(
             new String[20], new String[20], new String[20], new String[20], new String[20],
             new String[20], new String[20], new String[20], new String[20], new String[20],
@@ -108,13 +111,12 @@ public class GridMap extends View {
         greenPaint.setStrokeWidth(8);
         obstacleColor.setColor(getResources().getColor(R.color.rockColor));
         robotColor.setColor(getResources().getColor(R.color.light_blue));
-//        robotColor.setColor(getResources().getColor(R.color.transparent));
         robotColor.setStrokeWidth(2);
         endColor.setColor(Color.RED);
         startColor.setColor(Color.CYAN);
         waypointColor.setColor(Color.GREEN);
         unexploredColor.setColor(getResources().getColor(R.color.lightBlue));
-//        exploredColor.setColor(getResources().getColor(R.color.exploredColor2));
+        exploredColor.setColor(getResources().getColor(R.color.exploredColor2));
         arrowColor.setColor(Color.BLACK);
         fastestPathColor.setColor(Color.MAGENTA);
         Paint newpaint = new Paint();
@@ -538,9 +540,10 @@ public class GridMap extends View {
         directionAxisTextView.setText(direction);
     }
 
-    public void setObstacleCoord(int col, int row) {
+    public void setObstacleCoord(int col, int row, String obstacleID) {
         Logd("Entering setObstacleCoord");
-        int[] obstacleCoord = new int[]{col - 1, row - 1};
+        int parsedID = Integer.parseInt(obstacleID.substring(2));
+        int[] obstacleCoord = new int[]{col - 1, row - 1, parsedID};
         GridMap.obstacleCoord.add(obstacleCoord);
         row = this.convertRow(row);
         cells[col][row].setType("obstacle");
@@ -692,7 +695,7 @@ public class GridMap extends View {
                     ITEM_LIST.get(endRow - 1)[endColumn - 1] = tempID;
                     imageBearings.get(endRow - 1)[endColumn - 1] = tempBearing;
 
-                    setObstacleCoord(endColumn, endRow);
+                    setObstacleCoord(endColumn, endRow, tempID);
                     for (int i = 0; i < obstacleCoord.size(); i++) {
                         if (Arrays.equals(obstacleCoord.get(i), new int[]{initialColumn - 1, initialRow - 1}))
                             obstacleCoord.remove(i);
@@ -788,7 +791,7 @@ public class GridMap extends View {
                     mBearingSpinner.setAdapter(adapter2);
 
                     // start at current id and bearing
-                    if (imageId.equals("")||imageId.equals("Nil")) {
+                    if (imageId.equals("")||imageId.equals("Nil") || imageId.equals("OB-1")) {
                         mIDSpinner.setSelection(0);
                     } else {
                         imageId = imageId.substring(2);
@@ -813,6 +816,7 @@ public class GridMap extends View {
 
                             ITEM_LIST.get(tRow - 1)[tCol - 1] = newID;
                             imageBearings.get(tRow - 1)[tCol - 1] = newBearing;
+                            setObstacleCoord(tCol, tRow, newID);
                             Logd("tRow - 1 = " + (tRow - 1));
                             Logd("tCol - 1 = " + (tCol - 1));
                             Logd("newID = " + newID);
@@ -911,8 +915,12 @@ public class GridMap extends View {
             if (setObstacleStatus) {
                 if ((1 <= row && row <= 20) && (1 <= column && column <= 20)) {
                     // get user input from spinners in MapTabFragment static values
-                    String imageID = (MapTabFragment.imageID).equals("Nil") ?
-                            "" : MapTabFragment.imageID;
+                    String imageID = "";
+                    if (MapTabFragment.imageID.equals("Nil") || MapTabFragment.imageID.equals("")) {
+                        imageID = "OB-1";
+                    } else {
+                        imageID = MapTabFragment.imageID;
+                    }
                     String imageBearing = MapTabFragment.imageBearing;
 
                     // after init, at stated col and row, add the id to use as ref to update grid
@@ -920,7 +928,7 @@ public class GridMap extends View {
                     imageBearings.get(row - 1)[column - 1] = imageBearing;
 
                     // this function affects obstacle turning too
-                    this.setObstacleCoord(column, row);
+                    this.setObstacleCoord(column, row, imageID);
                 }
                 this.invalidate();
                 return true;
@@ -1410,12 +1418,20 @@ public class GridMap extends View {
     // wk 8 task
     public boolean updateIDFromRpi(String obstacleID, String imageID) {
         Logd("starting updateIDFromRpi");
+
+        int x = -999;
+        int y = -999;
         for (int i = 0; i < obstacleCoord.size(); i ++) {
             Logd(Integer.toString(obstacleCoord.get(i)[0]));
             Logd(Integer.toString(obstacleCoord.get(i)[1]));
+            Logd(Integer.toString(obstacleCoord.get(i)[2]));
+
+            if (Integer.parseInt(obstacleID) == obstacleCoord.get(i)[2]) {
+                x = obstacleCoord.get(i)[0];
+                y = obstacleCoord.get(i)[1];
+            }
         }
-        int x = obstacleCoord.get(Integer.parseInt(obstacleID) - 1)[0];
-        int y = obstacleCoord.get(Integer.parseInt(obstacleID) - 1)[1];
+
         ITEM_LIST.get(y)[x] = (imageID.equals("-1")) ? "" : imageID;
         this.invalidate();
         return true;
