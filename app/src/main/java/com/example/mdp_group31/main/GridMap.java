@@ -43,7 +43,6 @@ public class GridMap extends View {
     public GridMap(Context c) {
         super(c);
         initMap();
-        setWillNotDraw(false);
     }
 
     SharedPreferences sharedPreferences;
@@ -81,20 +80,13 @@ public class GridMap extends View {
     private boolean mapDrawn = false;
 
     // 2D array of the grid which stores the obstacles
-    // if the cell has an obstacle, ITEM_LIST[i][j] stores the obstacle ID "OB<no>"
+    // if the cell has an obstacle, OBSTACLE_LIST[i][j] stores the obstacle ID "OB<no>"
     // else it stores only an empty string ""
-    public ArrayList<String[]> ITEM_LIST = new ArrayList<>(Arrays.asList(
-            new String[20], new String[20], new String[20], new String[20], new String[20],
-            new String[20], new String[20], new String[20], new String[20], new String[20],
-            new String[20], new String[20], new String[20], new String[20], new String[20],
-            new String[20], new String[20], new String[20], new String[20], new String[20]
-    ));
-    public static ArrayList<String[]> imageBearings = new ArrayList<>(Arrays.asList(
-            new String[20], new String[20], new String[20], new String[20], new String[20],
-            new String[20], new String[20], new String[20], new String[20], new String[20],
-            new String[20], new String[20], new String[20], new String[20], new String[20],
-            new String[20], new String[20], new String[20], new String[20], new String[20]
-    ));
+    public String[][] OBSTACLE_LIST = new String[20][20];
+
+    public String[][] IMAGE_LIST = new String[20][20];
+    
+    public static String[][] IMAGE_BEARING = new String[20][20];
 
     static ClipData clipData;
     static Object localState;
@@ -121,13 +113,19 @@ public class GridMap extends View {
         fastestPathColor.setColor(Color.MAGENTA);
         Paint newpaint = new Paint();
         newpaint.setColor(Color.TRANSPARENT);
-
         // get shared preferences
         sharedPreferences = getContext().getSharedPreferences("Shared Preferences",
                 Context.MODE_PRIVATE);
     }
 
     private void initMap() {
+        for (int outter = 0; outter < this.OBSTACLE_LIST.length; outter++) {
+            String[] row = new String[this.OBSTACLE_LIST[outter].length];
+            Arrays.fill(row, "");
+            this.OBSTACLE_LIST[outter] = row;
+            this.IMAGE_LIST[outter] = row;
+            IMAGE_BEARING[outter] = row;
+        }
         setWillNotDraw(false);
     }
 
@@ -165,14 +163,14 @@ public class GridMap extends View {
             for (int j = 0; j < 20; j++) {
                 // draw image id
                 canvas.drawText(
-                        ITEM_LIST.get(19-i)[j],
+                        OBSTACLE_LIST[19-i][j],
                         cells[j+1][19-i].startX + ((cells[1][1].endX - cells[1][1].startX) / 2),
                         cells[j+1][i].startY + ((cells[1][1].endY - cells[1][1].startY) / 2) + 10,
                         whitePaint
                 );
 
                 // color the face direction
-                switch (imageBearings.get(19-i)[j]) {
+                switch (IMAGE_BEARING[19-i][j]) {
                     case "North":
                         canvas.drawLine(
                                 cells[j + 1][20 - i].startX,
@@ -543,8 +541,9 @@ public class GridMap extends View {
     public void setObstacleCoord(int col, int row, String obstacleID) {
         Logd("Entering setObstacleCoord");
         int parsedID = Integer.parseInt(obstacleID.substring(2));
-        int[] obstacleCoord = new int[]{col - 1, row - 1, parsedID};
+        int[] obstacleCoord = new int[]{row, col, parsedID};
         GridMap.obstacleCoord.add(obstacleCoord);
+        OBSTACLE_LIST[row - 1][col - 1] = obstacleID;
         row = this.convertRow(row);
         cells[col][row].setType("obstacle");
         Logd("Exiting setObstacleCoord");
@@ -620,8 +619,6 @@ public class GridMap extends View {
         }
     }
 
-    int endColumn, endRow;
-    String oldItem;
     // drag event to move obstacle
     @Override
     public boolean onDragEvent(DragEvent dragEvent) {
@@ -630,86 +627,50 @@ public class GridMap extends View {
         localState = dragEvent.getLocalState();
 
         String tempID, tempBearing;
+        int endColumn, endRow;
         endColumn = endRow = -999;
-        oldItem = ITEM_LIST.get(initialRow - 1)[initialColumn - 1];
-        Logd("dragEvent.getAction() == " + dragEvent.getAction());
-        Logd("dragEvent.getResult() is " + dragEvent.getResult());
-        Logd("initialColumn = " + initialColumn + ", initialRow = " + initialRow);
-        // SEND IT OVER
-        // drag and drop out of gridmap
-        if ((dragEvent.getAction() == DragEvent.ACTION_DRAG_ENDED)
-                && (endColumn == -999 || endRow == -999) && !dragEvent.getResult()) {
-            // check if 2 arrays are same, then remove
-            Logd("Running parent if clause");
-            for (int i = 0; i < obstacleCoord.size(); i++) {
-                if (Arrays.equals(obstacleCoord.get(i), new int[]{initialColumn - 1, initialRow - 1})) {
-                    obstacleCoord.remove(i);
-                    Logd("Removed obstacle that is out of bound");
-                }
-            }
-            cells[initialColumn][20-initialRow].setType("unexplored");
-            ITEM_LIST.get(initialRow-1)[initialColumn-1] = "";
-            imageBearings.get(initialRow-1)[initialColumn-1] = "";
+        String obstacleID = OBSTACLE_LIST[initialRow - 1][initialColumn - 1];
 
-            String sentText = initialRow + " " + initialColumn + "; " + endRow + " " + endColumn;
-            MainActivity.printMessage(sentText);
+        // if the currently dragged cell is empty, do nothing
+        if (obstacleID.equals("")) {
+            return false;
         }
-        // drop within gridmap
-        else if (dragEvent.getAction() == DragEvent.ACTION_DROP) {
+
+        // drop outside of map entirely (anywhere on the screen)
+        if (!dragEvent.getResult() && dragEvent.getAction() == DragEvent.ACTION_DRAG_ENDED) {
+            this.dropObstacle(obstacleID, initialRow, initialColumn);
+        }
+
+        // drop on the row and column indices
+        if (dragEvent.getAction() == DragEvent.ACTION_DROP) {
             endColumn = (int) (dragEvent.getX() / cellSize);
             endRow = this.convertRow((int) (dragEvent.getY() / cellSize));
 
-            // if the currently dragged cell is empty, do nothing
-            if (ITEM_LIST.get(initialRow-1)[initialColumn-1].equals("")
-                    && imageBearings.get(initialRow-1)[initialColumn-1].equals("")) {
-                Logd("Cell is empty");
-            }
             // if dropped within mapview but outside drawn grids, remove obstacle from lists
-            else if (endColumn <= 0 || endRow <= 0) {
-                Logd("Running second else if clause");
-                for (int i = 0; i < obstacleCoord.size(); i++) {
-                    if (Arrays.equals(obstacleCoord.get(i),
-                            new int[]{initialColumn - 1, initialRow - 1}))
-                        obstacleCoord.remove(i);
-                }
-                cells[initialColumn][20-initialRow].setType("unexplored");
-                ITEM_LIST.get(initialRow-1)[initialColumn-1] = "";
-                imageBearings.get(initialRow-1)[initialColumn-1] = "";
+            if (endColumn <= 0 || endRow <= 0) {
+                Logd("Dropped on indices row");
+                this.dropObstacle(obstacleID, initialRow, initialColumn);
             }
+
             // if dropped within gridmap, shift it to new position unless already got existing
-            else if ((1 <= initialColumn && initialColumn <= 20)
-                    && (1 <= initialRow && initialRow <= 20)
-                    && (1 <= endColumn && endColumn <= 20)
-                    && (1 <= endRow && endRow <= 20)) {
-                Logd("Running third else if clause");
-                tempID = ITEM_LIST.get(initialRow-1)[initialColumn-1];
-                tempBearing = imageBearings.get(initialRow-1)[initialColumn-1];
+            else if (1 <= initialColumn && initialColumn <= 20 && 1 <= initialRow && initialRow <= 20
+                    && endColumn <= 20 && endRow <= 20) {
+                Logd("Dropped anywhere on the map");
+                tempID = OBSTACLE_LIST[initialRow - 1][initialColumn - 1];
+                tempBearing = IMAGE_BEARING[initialRow - 1][initialColumn - 1];
 
                 // check if got existing obstacle at drop location
-                if (!ITEM_LIST.get(endRow - 1)[endColumn - 1].equals("")
-                        || !imageBearings.get(endRow - 1)[endColumn - 1].equals("")) {
+                if (!OBSTACLE_LIST[endRow - 1][endColumn - 1].equals("")) {
                     Logd("An obstacle is already at drop location");
                 } else {
-                    ITEM_LIST.get(initialRow - 1)[initialColumn - 1] = "";
-                    imageBearings.get(initialRow - 1)[initialColumn - 1] = "";
-                    ITEM_LIST.get(endRow - 1)[endColumn - 1] = tempID;
-                    imageBearings.get(endRow - 1)[endColumn - 1] = tempBearing;
-
+                    this.dropObstacle(obstacleID, initialRow, initialColumn);
                     setObstacleCoord(endColumn, endRow, tempID);
-                    for (int i = 0; i < obstacleCoord.size(); i++) {
-                        if (Arrays.equals(obstacleCoord.get(i), new int[]{initialColumn - 1, initialRow - 1}))
-                            obstacleCoord.remove(i);
-                    }
-                    cells[initialColumn][20 - initialRow].setType("unexplored");
+                    IMAGE_BEARING[endRow - 1][endColumn - 1] = tempBearing;
                 }
             } else {
                 Logd("Drag event failed.");
             }
 
-            // TODO
-            // pass updated location over BT
-            // only put in this else if clause so that the BT msg is only sent when it is
-            // ACTION_DROP!!
             String sentText = initialRow + " " + initialColumn + "; " + endRow + " " + endColumn;
             MainActivity.printMessage(sentText);
         }
@@ -727,6 +688,21 @@ public class GridMap extends View {
         this.invalidate();
     }
 
+    public void dropObstacle(String obstacleID, int x, int y) {
+        int obstacleX, obstacleY;
+        for (int i = 0; i < obstacleCoord.size(); i ++) {
+            if (Arrays.equals(obstacleCoord.get(i), new int[]{x, y, Integer.parseInt(obstacleID.substring(2))})) {
+                obstacleX = obstacleCoord.get(i)[0];
+                obstacleY = obstacleCoord.get(i)[1];
+                OBSTACLE_LIST[obstacleX - 1][obstacleY - 1] = "";
+                IMAGE_BEARING[obstacleX - 1][obstacleY - 1] = "";
+                cells[obstacleY][20 - obstacleX].setType("unexplored");
+                obstacleCoord.remove(obstacleCoord.get(i));
+                return;
+            }
+        }
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         Logd("Entering onTouchEvent");
@@ -740,34 +716,25 @@ public class GridMap extends View {
 
             ToggleButton setStartPointToggleBtn = ((Activity)this.getContext())
                     .findViewById(R.id.startpointToggleBtn);
-            Logd("event.getX = " + event.getX() + ", event.getY = " + event.getY());
-            Logd("row = " + row + ", column = " + column);
 
-            // start drag
+
             if (MapTabFragment.dragStatus) {
-                if (!((1 <= initialColumn && initialColumn <= 20)
-                        && (1 <= initialRow && initialRow <= 20))) {
-                    return false;
-                } else if (ITEM_LIST.get(row - 1)[column - 1].equals("")
-                        && imageBearings.get(row - 1)[column - 1].equals("")) {
+                // if the drag location has no obstacles, do nothing
+                if (OBSTACLE_LIST[row - 1][column - 1].equals("")) {
                     return false;
                 }
                 DragShadowBuilder dragShadowBuilder = new MyDragShadowBuilder(this);
-                this.startDrag(null, dragShadowBuilder, null, 0);
+                this.startDragAndDrop(null, dragShadowBuilder, null, 0);
             }
 
             // start change obstacle
             if (MapTabFragment.changeObstacleStatus) {
-                if (!((1 <= initialColumn && initialColumn <= 20)
-                        && (1 <= initialRow && initialRow <= 20))) {
-                    return false;
-                } else if (ITEM_LIST.get(row - 1)[column - 1].equals("")
-                        && imageBearings.get(row - 1)[column - 1].equals("")) {
+                if (OBSTACLE_LIST[row - 1][column - 1].equals("")) {
                     return false;
                 } else {
                     Logd("Enter change obstacle status");
-                    String imageId = ITEM_LIST.get(row -1)[column - 1];
-                    String imageBearing = imageBearings.get(row - 1)[column - 1];
+                    String obstacleID = OBSTACLE_LIST[row - 1][column - 1];
+                    String obstacleBearing = IMAGE_BEARING[row - 1][column - 1];
                     final int tRow = row;
                     final int tCol = column;
 
@@ -790,14 +757,10 @@ public class GridMap extends View {
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     mBearingSpinner.setAdapter(adapter2);
 
-                    // start at current id and bearing
-                    if (imageId.equals("")||imageId.equals("Nil") || imageId.equals("OB-1")) {
-                        mIDSpinner.setSelection(0);
-                    } else {
-                        imageId = imageId.substring(2);
-                        mIDSpinner.setSelection(Integer.parseInt(imageId));
-                    }
-                    switch (imageBearing) {
+                    obstacleID = obstacleID.substring(2);
+                    mIDSpinner.setSelection(Integer.parseInt(obstacleID));
+
+                    switch (obstacleBearing) {
                         case "North": mBearingSpinner.setSelection(0);
                             break;
                         case "South": mBearingSpinner.setSelection(1);
@@ -808,27 +771,19 @@ public class GridMap extends View {
                     }
 
                     // do what when user presses ok
+                    final String tempID = obstacleID;
                     mBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             String newID = mIDSpinner.getSelectedItem().toString();
                             String newBearing = mBearingSpinner.getSelectedItem().toString();
 
-                            ITEM_LIST.get(tRow - 1)[tCol - 1] = newID;
-                            imageBearings.get(tRow - 1)[tCol - 1] = newBearing;
+                            OBSTACLE_LIST[tRow - 1][tCol - 1] = newID;
+                            IMAGE_BEARING[tRow - 1][tCol - 1] = newBearing;
                             setObstacleCoord(tCol, tRow, newID);
-                            Logd("tRow - 1 = " + (tRow - 1));
-                            Logd("tCol - 1 = " + (tCol - 1));
-                            Logd("newID = " + newID);
-                            Logd("newBearing = " + newBearing);
 
-                            // TODO
-                            // pass newID and newBearing over via BT
-                            String sentText = newID + " " + newBearing;
-                            if (BluetoothConnectionService.BluetoothConnectionStatus) {
-                                byte[] bytes = sentText.getBytes(Charset.defaultCharset());
-                                BluetoothConnectionService.write(bytes);
-                            }
+                            String sentText = "ID|OB-" + tempID + "-" + newID + "-" + newBearing;
+                            MainActivity.printMessage(sentText);
                             callInvalidate();
                         }
                     });
@@ -887,7 +842,6 @@ public class GridMap extends View {
                     int directionInt = 0;
                     switch (direction) {
                         case "up":
-                            directionInt = 0;
                             break;
                         case "left":
                             directionInt = 3;
@@ -914,21 +868,9 @@ public class GridMap extends View {
             // add id and the image bearing, popup to ask for user input
             if (setObstacleStatus) {
                 if ((1 <= row && row <= 20) && (1 <= column && column <= 20)) {
-                    // get user input from spinners in MapTabFragment static values
-                    String imageID = "";
-                    if (MapTabFragment.imageID.equals("Nil") || MapTabFragment.imageID.equals("")) {
-                        imageID = "OB-1";
-                    } else {
-                        imageID = MapTabFragment.imageID;
-                    }
-                    String imageBearing = MapTabFragment.imageBearing;
-
-                    // after init, at stated col and row, add the id to use as ref to update grid
-                    ITEM_LIST.get(row - 1)[column - 1] = imageID;
-                    imageBearings.get(row - 1)[column - 1] = imageBearing;
-
-                    // this function affects obstacle turning too
-                    this.setObstacleCoord(column, row, imageID);
+                    OBSTACLE_LIST[row - 1][column - 1] = "OB0";
+                    IMAGE_BEARING[row - 1][column - 1] = "North";
+                    this.setObstacleCoord(column, row, "OB0");
                 }
                 this.invalidate();
                 return true;
@@ -946,8 +888,8 @@ public class GridMap extends View {
                 for (int i=0; i<obstacleCoord.size(); i++)
                     if (obstacleCoord.get(i)[0] == column && obstacleCoord.get(i)[1] == row)
                         obstacleCoord.remove(i);
-                ITEM_LIST.get(row)[column-1] = "";  // remove imageID
-                imageBearings.get(row)[column-1] = "";  // remove bearing
+                OBSTACLE_LIST[row][column-1] = "";  // remove imageID
+                IMAGE_BEARING[row][column-1] = "";  // remove bearing
                 this.invalidate();
                 return true;
             }
@@ -994,8 +936,8 @@ public class GridMap extends View {
 
         for (int i = 0; i < 20; i++) {
             for (int j = 0; j < 20; j++) {
-                ITEM_LIST.get(i)[j] = "";
-                imageBearings.get(i)[j] = "";
+                OBSTACLE_LIST[i][j] = "";
+                IMAGE_BEARING[i][j] = "";
             }
         }
         Logd("Exiting resetMap");
@@ -1355,7 +1297,7 @@ public class GridMap extends View {
         for (int i = 0; i < obstacleCoord.size(); i++) {
             message += ((obstacleCoord.get(i)[0]) + ","
                     + (obstacleCoord.get(i)[1]) + ","
-                    + imageBearings.get(obstacleCoord.get(i)[1])[obstacleCoord.get(i)[0]].charAt(0))+"|";
+                    + IMAGE_BEARING[obstacleCoord.get(i)[1]][obstacleCoord.get(i)[0]].charAt(0))+"|";
         }
         return message;
     }
@@ -1370,17 +1312,17 @@ public class GridMap extends View {
         for (int i = 0; i < obstacleCoord.size(); i++) {
             if (i==obstacleCoord.size()-1) {
                 //last obstacle!
-                directionArr.add(imageBearings.get(obstacleCoord.get(i)[1])[obstacleCoord.get(i)[0]].charAt(0));
+                directionArr.add(IMAGE_BEARING[obstacleCoord.get(i)[1]][obstacleCoord.get(i)[0]].charAt(0));
                 msg += ("["+(obstacleCoord.get(i)[0]) + ","
                         + (obstacleCoord.get(i)[1]) + ","
-                        + imageBearings.get(obstacleCoord.get(i)[1])[obstacleCoord.get(i)[0]].charAt(0))
+                        + IMAGE_BEARING[obstacleCoord.get(i)[1]][obstacleCoord.get(i)[0]].charAt(0))
                         + "]]";
             }
             else{
-                directionArr.add(imageBearings.get(obstacleCoord.get(i)[1])[obstacleCoord.get(i)[0]].charAt(0));
+                directionArr.add(IMAGE_BEARING[obstacleCoord.get(i)[1]][obstacleCoord.get(i)[0]].charAt(0));
                 msg += ( "[" + (obstacleCoord.get(i)[0]) + ","
                         + (obstacleCoord.get(i)[1]) + ","
-                        + imageBearings.get(obstacleCoord.get(i)[1])[obstacleCoord.get(i)[0]].charAt(0)
+                        + IMAGE_BEARING[obstacleCoord.get(i)[1]][obstacleCoord.get(i)[0]].charAt(0)
                         + "],");
             }
         }
@@ -1416,24 +1358,17 @@ public class GridMap extends View {
     }
 
     // wk 8 task
-    public boolean updateIDFromRpi(String obstacleID, String imageID) {
+    public void updateIDFromRpi(String obstacleID, String imageID) {
         Logd("starting updateIDFromRpi");
-
         int x = -999;
         int y = -999;
         for (int i = 0; i < obstacleCoord.size(); i ++) {
-            Logd(Integer.toString(obstacleCoord.get(i)[0]));
-            Logd(Integer.toString(obstacleCoord.get(i)[1]));
-            Logd(Integer.toString(obstacleCoord.get(i)[2]));
-
             if (Integer.parseInt(obstacleID) == obstacleCoord.get(i)[2]) {
                 x = obstacleCoord.get(i)[0];
                 y = obstacleCoord.get(i)[1];
             }
         }
-
-        ITEM_LIST.get(y)[x] = (imageID.equals("-1")) ? "" : imageID;
+        IMAGE_LIST[x - 1][y - 1] = imageID;
         this.invalidate();
-        return true;
     }
 }

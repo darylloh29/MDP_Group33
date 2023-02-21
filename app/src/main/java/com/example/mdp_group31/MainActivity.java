@@ -132,13 +132,13 @@ public class MainActivity extends AppCompatActivity {
         yAxisTextView = findViewById(R.id.yAxisTextView);
         directionAxisTextView = findViewById(R.id.directionAxisTextView);
 
-        // initialize ITEM_LIST and imageBearings strings
+        // initialize OBSTACLE_LIST and IMAGE_BEARING strings
         // TODO
-        // to understand what ITEM_LIST is (ArrayList of strings)
+        // to understand what OBSTACLE_LIST is (ArrayList of strings)
         for (int i = 0; i < 20; i++) {
             for (int j = 0; j < 20; j++) {
-                gridMap.ITEM_LIST.get(i)[j] = "";
-                GridMap.imageBearings.get(i)[j] = "";
+                gridMap.OBSTACLE_LIST[i][j] = "";
+                GridMap.IMAGE_BEARING[i][j] = "";
             }
         }
 
