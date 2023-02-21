@@ -13,7 +13,7 @@ public class SplashScreen extends Activity {
         handler = new Thread(){
             public void run(){
                 try{
-                    sleep(3000);
+                    sleep(10);
                     Intent main = new Intent(SplashScreen.this, MainActivity.class);
                     startActivity(main);
                 } catch (InterruptedException e) {
