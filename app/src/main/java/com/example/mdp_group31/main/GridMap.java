@@ -321,30 +321,36 @@ public class GridMap extends View {
         int robotX = curCoord[0];
         int robotY = curCoord[1];
 
-        if (! (robotX < 1 || robotX > 19 || robotY < 2 || robotY > 20)) {
+        if (! (robotX == -1 || robotY == -1)) {
             op.inMutable = true;
-            xCoord = cells[robotX][20 - robotY].startX;
-            yCoord = cells[robotX][20 - robotY].startY;
             switch (this.getRobotDirection()) {
                 case "up":
+                    xCoord = cells[robotX][20 - robotY].startX;
+                    yCoord = cells[robotX][20 - robotY].startY;
                     bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_up, op);
                     mapscalable = Bitmap.createScaledBitmap(bm, 70,70, true);
                     canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
                     break;
 
                 case "down":
+                    xCoord = cells[robotX - 1][20 - (robotY + 1)].startX;
+                    yCoord = cells[robotX - 1][20 - (robotY + 1)].startY;
                     bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_down, op);
                     mapscalable = Bitmap.createScaledBitmap(bm, 70,70, true);
                     canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
                     break;
 
                 case "right":
+                    xCoord = cells[robotX - 1][20 - robotY].startX;
+                    yCoord = cells[robotX - 1][20 - robotY].startY;
                     bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_right, op);
                     mapscalable = Bitmap.createScaledBitmap(bm, 70,70, true);
                     canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
                     break;
 
                 case "left":
+                    xCoord = cells[robotX][20 - (robotY - 1)].startX;
+                    yCoord = cells[robotX][20 - (robotY + 1)].startY;
                     bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_left, op);
                     mapscalable = Bitmap.createScaledBitmap(bm, 70,70, true);
                     canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
@@ -453,14 +459,14 @@ public class GridMap extends View {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             initialColumn = (int) (event.getX() / cellSize);
             initialRow = this.convertRow((int) (event.getY() / cellSize));
-            String obstacleID = OBSTACLE_LIST[initialRow - 1][initialColumn - 1];
-            String obstacleBearing = IMAGE_BEARING[initialRow - 1][initialColumn - 1];
+            String obstacleID;
+            String obstacleBearing;
             ToggleButton setStartPointToggleBtn = ((Activity)this.getContext())
                     .findViewById(R.id.startpointToggleBtn);
 
             if (MapTabFragment.dragStatus) {
                 // if the drag location has no obstacles, do nothing
-                if (obstacleID.equals("")) {
+                if (OBSTACLE_LIST[initialRow - 1][initialColumn - 1].equals("")) {
                     return false;
                 }
                 DragShadowBuilder dragShadowBuilder = new MyDragShadowBuilder(this);
@@ -470,9 +476,11 @@ public class GridMap extends View {
             // start change obstacle
             if (MapTabFragment.changeObstacleStatus) {
                 // if touch on empty cell, do nothing
-                if (obstacleID.equals("")) {
+                if (OBSTACLE_LIST[initialRow - 1][initialColumn - 1].equals("")) {
                     return false;
                 } else {
+                    obstacleID = OBSTACLE_LIST[initialRow - 1][initialColumn - 1];
+                    obstacleBearing = IMAGE_BEARING[initialRow - 1][initialColumn - 1];
                     final int tRow = initialRow;
                     final int tCol = initialColumn;
 
@@ -568,26 +576,7 @@ public class GridMap extends View {
                 if (direction.equals("None")) {
                     direction = "up";
                 }
-                try {
-                    int directionInt;
-                    switch (direction) {
-                        case "up":
-                            directionInt = 0;
-                            break;
-                        case "left":
-                            directionInt = 3;
-                            break;
-                        case "right":
-                            directionInt = 1;
-                            break;
-                        case "down":
-                            directionInt = 2;
-                            break;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                updateRobotAxis(initialColumn, initialRow, direction);
+                this.updateRobotAxis(initialColumn, initialRow, direction);
                 if (setStartPointToggleBtn.isChecked())
                     setStartPointToggleBtn.toggle();
                 this.invalidate();
@@ -614,36 +603,91 @@ public class GridMap extends View {
     }
 
     public void setStartCoord(int col, int row) {
-        startCoord[0] = col;
-        startCoord[1] = row;
         String direction = getRobotDirection();
         if (direction.equals("None")) {
             direction = "up";
         }
+        switch (direction) {
+            case "up":
+                if (col > 0 && col < 20 && row > 1 && row <= 20) {
+                    startCoord[0] = col;
+                    startCoord[1] = row;
+                } else {
+                    return;
+                }
+                break;
+
+            case "left":
+                if (col > 0 && col < 20 && row >= 1 && row < 20) {
+                    startCoord[0] = col;
+                    startCoord[1] = row;
+                } else {
+                    return;
+                }
+                break;
+
+            case "right":
+                if (col > 1 && col <= 20 && row > 1 && row <= 20) {
+                    startCoord[0] = col;
+                    startCoord[1] = row;
+                } else {
+                    return;
+                }
+                break;
+
+            case "down":
+                if (col > 1 && col <= 20 && row > 0 && row < 20) {
+                    startCoord[0] = col;
+                    startCoord[1] = row;
+                } else {
+                    return;
+                }
+                break;
+        }
+
         if (this.getStartCoordStatus())
             this.setCurCoord(col, row, direction);
     }
 
     public void setCurCoord(int col, int row, String direction) {
-        if (row < 2 || row > 20) {
+        Logd("Current coordinate is: " + col + " " + row);
+        if (col < 1 || col > 20 || row < 1 || row > 20) {
             return;
         }
-        if (col > 19 || col < 1) {
-            return;
-        }
+
         curCoord[0] = col;
         curCoord[1] = row;
         this.setRobotDirection(direction);
         this.updateRobotAxis(col, row, direction);
 
         row = this.convertRow(row);
+        cells[col][row].setType("explored");
 
-        cells[col + 1][row + 1].setType("robot");
-        cells[col + 1][row].setType("robot");
-        cells[col][row + 1].setType("robot");
-        cells[col][row].setType("robot");
+        switch (direction) {
+            case "up":
+                cells[col + 1][row + 1].setType("explored");
+                cells[col + 1][row].setType("explored");
+                cells[col][row + 1].setType("explored");
+                break;
 
-        Logd("Exiting setCurCoord");
+            case "down":
+                cells[col - 1][row - 1].setType("explored");
+                cells[col - 1][row].setType("explored");
+                cells[col][row - 1].setType("explored");
+                break;
+
+            case "left":
+                cells[col + 1][row - 1].setType("explored");
+                cells[col + 1][row].setType("explored");
+                cells[col][row - 1].setType("explored");
+                break;
+
+            case "right":
+                cells[col - 1][row + 1].setType("explored");
+                cells[col - 1][row].setType("explored");
+                cells[col][row + 1].setType("explored");
+                break;
+        }
     }
 
     public int[] getCurCoord() {
@@ -652,22 +696,6 @@ public class GridMap extends View {
 
     private int convertRow(int row) {
         return (20 - row);
-    }
-
-    private void setOldRobotCoord(int oldCol, int oldRow) {
-        oldCoord[0] = oldCol;
-        oldCoord[1] = oldRow;
-        oldRow = this.convertRow(oldRow);
-
-        if ((oldRow > 0  && oldRow <= 19) && (oldCol > 0  && oldCol <= 19)) {
-            for (int x = oldCol; x <= oldCol + 1; x++)
-                for (int y = oldRow; y <= oldRow + 1; y++)
-                    cells[x][y].setType("explored");
-        }
-    }
-
-    private int[] getOldRobotCoord() {
-        return oldCoord;
     }
 
     public void setRobotDirection(String direction) {
@@ -686,8 +714,9 @@ public class GridMap extends View {
         TextView directionAxisTextView =  ((Activity)this.getContext())
                 .findViewById(R.id.directionAxisTextView);
 
-        xAxisTextView.setText(String.valueOf(col));
-        yAxisTextView.setText(String.valueOf(row));
+        Logd("Value passed in is " + col + " " + row);
+        xAxisTextView.setText(String.format(Integer.toString(col)));
+        yAxisTextView.setText(String.format(Integer.toString(row)));
         directionAxisTextView.setText(direction);
     }
 
@@ -837,8 +866,6 @@ public class GridMap extends View {
         setValidPosition(false);
         int[] curCoord = this.getCurCoord();
         ArrayList<int[]> obstacleCoord = this.getObstacleCoord();
-        this.setOldRobotCoord(curCoord[0], curCoord[1]);
-        int[] oldCoord = this.getOldRobotCoord();
         String robotDirection = getRobotDirection();
         String backupDirection = robotDirection;
 
@@ -847,43 +874,57 @@ public class GridMap extends View {
             case "up":
                 switch (direction) {
                     case "forward":
-                        if (curCoord[1] != 20) {
-                            curCoord[1] += 1;
+                        curCoord[1] += 1;
+                        if (curCoord[1] <= 20) {
                             validPosition = true;
+                        } else {
+                            curCoord[1] -= 1;
+                            validPosition = false;
                         }
                         break;
                     case "right":
-                        if ((1 < curCoord[1] && curCoord[1] < 19)
-                                && (0 < curCoord[0] && curCoord[0] < 19)) {
-                            curCoord[1] += 1;
+                        curCoord[1] += 2;
+                        curCoord[0] += 3;
+                        if ((1 < curCoord[1] && curCoord[1] <= 20)
+                                && (1 < curCoord[0] && curCoord[0] <= 20)) {
                             if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
                                 validPosition = false;
-                                curCoord[1] -= 1;
+                                curCoord[1] -= 2;
+                                curCoord[0] -= 3;
                             } else {
-                                curCoord[0] += 1;
                                 robotDirection = "right";
                                 validPosition = true;
                             }
+                        } else {
+                            curCoord[1] -= 2;
+                            curCoord[0] -= 3;
                         }
                         break;
                     case "back":
-                        if (curCoord[1] != 1) {
-                            curCoord[1] -= 1;
+                        curCoord[1] -= 1;
+                        if (curCoord[1] > 1) {
                             validPosition = true;
+                        } else {
+                            curCoord[1] += 1;
+                            validPosition = false;
                         }
                         break;
                     case "left":
-                        if ((1 < curCoord[1] && curCoord[1] < 19)
-                                && (1 < curCoord[0] && curCoord[0] <= 20)) {
-                            curCoord[1] += 1;
+                        curCoord[1] += 1;
+                        curCoord[0] -= 2;
+                        if ((1 <= curCoord[1] && curCoord[1] <= 19)
+                                && (1 <= curCoord[0] && curCoord[0] < 20)) {
                             if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
                                 validPosition = false;
                                 curCoord[1] -= 1;
+                                curCoord[0] += 2;
                             } else {
-                                curCoord[0] -= 1;
                                 robotDirection = "left";
                                 validPosition = true;
                             }
+                        } else {
+                            curCoord[1] -= 1;
+                            curCoord[0] += 2;
                         }
                         break;
                     default:
@@ -894,43 +935,57 @@ public class GridMap extends View {
             case "right":
                 switch (direction) {
                     case "forward":
-                        if (0 < curCoord[0] && curCoord[0] < 20) {
-                            curCoord[0] += 1;
+                        curCoord[0] += 1;
+                        if (1 < curCoord[0] && curCoord[0] <= 20) {
                             validPosition = true;
+                        } else {
+                            curCoord[0] -= 1;
+                            validPosition = false;
                         }
                         break;
                     case "right":
-                        if ((2 < curCoord[1] && curCoord[1] < 20)
-                                && (0 < curCoord[0] && curCoord[0] < 20)) {
-                            curCoord[0] += 1;
+                        curCoord[0] += 2;
+                        curCoord[1] -= 3;
+                        if ((1 <= curCoord[1] && curCoord[1] < 20)
+                                && (1 < curCoord[0] && curCoord[0] <= 20)) {
                             if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
                                 validPosition = false;
-                                curCoord[0] -= 1;
+                                curCoord[0] -= 2;
+                                curCoord[1] += 3;
                             } else {
-                                curCoord[1] -= 1;
                                 robotDirection = "down";
                                 validPosition = true;
                             }
+                        } else {
+                            curCoord[0] -= 2;
+                            curCoord[1] += 3;
                         }
                         break;
                     case "back":
-                        if (curCoord[0] > 2) {
-                            curCoord[0] -= 1;
+                        curCoord[0] -= 1;
+                        if (curCoord[0] > 1) {
                             validPosition = true;
+                        } else {
+                            curCoord[0] += 1;
+                            validPosition = false;
                         }
                         break;
                     case "left":
-                        if ((0 < curCoord[1] && curCoord[1] < 19)
-                                && (0 < curCoord[0] && curCoord[0] < 20)) {
-                            curCoord[0] += 1;
+                        curCoord[0] += 1;
+                        curCoord[1] += 2;
+                        if ((1 < curCoord[1] && curCoord[1] <= 20)
+                                && (1 <= curCoord[0] && curCoord[0] < 20)) {
                             if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
                                 validPosition = false;
                                 curCoord[0] -= 1;
+                                curCoord[1] -= 2;
                             } else {
-                                curCoord[1] += 1;
                                 robotDirection = "up";
                                 validPosition = true;
                             }
+                        } else {
+                            curCoord[0] -= 1;
+                            curCoord[1] -= 2;
                         }
                         break;
                     default:
@@ -940,43 +995,58 @@ public class GridMap extends View {
             case "down":
                 switch (direction) {
                     case "forward":
-                        if (curCoord[1] != 1) {
-                            curCoord[1] -= 1;
+                        curCoord[1] -= 1;
+                        if (curCoord[1] >= 1) {
                             validPosition = true;
+                        } else {
+                            curCoord[1] += 1;
+                            validPosition = false;
                         }
                         break;
                     case "right":
-                        if ((1 < curCoord[1] && curCoord[1] < 19)
-                                && (2 < curCoord[0] && curCoord[0] <= 20)) {
-                            curCoord[1] -= 1;
+                        curCoord[1] -= 2;
+                        curCoord[0] -= 3;
+                        if ((1 <= curCoord[1] && curCoord[1] <= 19)
+                                && (1 <= curCoord[0] && curCoord[0] < 20)) {
                             if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
                                 validPosition = false;
-                                curCoord[1] += 1;
+                                curCoord[1] += 2;
+                                curCoord[0] += 3;
                             } else {
-                                curCoord[0] -= 1;
                                 robotDirection = "left";
                                 validPosition = true;
                             }
                         }
+                        else {
+                            curCoord[1] += 2;
+                            curCoord[0] += 3;
+                        }
                         break;
                     case "back":
-                        if (0 < curCoord[1] && curCoord[1] < 19) {
-                            curCoord[1] += 1;
+                        curCoord[1] += 1;
+                        if (curCoord[1] < 20) {
                             validPosition = true;
+                        } else {
+                            curCoord[1] -= 1;
+                            validPosition = false;
                         }
                         break;
                     case "left":
-                        if ((1 < curCoord[1] && curCoord[1] < 20)
-                                && (0 < curCoord[0] && curCoord[0] <= 20)) {
-                            curCoord[1] -= 1;
+                        curCoord[1] -= 1;
+                        curCoord[0] += 2;
+                        if ((1 < curCoord[1] && curCoord[1] <= 20)
+                                && (1 < curCoord[0] && curCoord[0] <= 20)) {
                             if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
                                 validPosition = false;
                                 curCoord[1] += 1;
+                                curCoord[0] -= 2;
                             } else {
-                                curCoord[0] += 1;
                                 robotDirection = "right";
                                 validPosition = true;
                             }
+                        } else {
+                            curCoord[1] += 1;
+                            curCoord[0] -= 2;
                         }
                         break;
                     default:
@@ -986,43 +1056,57 @@ public class GridMap extends View {
             case "left":
                 switch (direction) {
                     case "forward":
-                        if (curCoord[0] > 2) {
-                            curCoord[0] -= 1;
+                        curCoord[0] -= 1;
+                        if (curCoord[0] >= 1) {
                             validPosition = true;
+                        } else {
+                            curCoord[0] += 1;
+                            validPosition = false;
                         }
                         break;
                     case "right":
-                        if ((0 < curCoord[1] && curCoord[1] < 19)
-                                && (2 < curCoord[0] && curCoord[0] < 20)) {
-                            curCoord[0] -= 1;
+                        curCoord[0] -= 2;
+                        curCoord[1] += 3;
+                        if ((1 < curCoord[1] && curCoord[1] <= 20)
+                                && (1 <= curCoord[0] && curCoord[0] < 20)) {
                             if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
                                 validPosition = false;
-                                curCoord[0] += 1;
+                                curCoord[0] += 2;
+                                curCoord[1] -= 3;
                             } else {
-                                curCoord[1] += 1;
                                 robotDirection = "up";
                                 validPosition = true;
                             }
+                        } else {
+                            curCoord[0] += 2;
+                            curCoord[1] -= 3;
                         }
                         break;
                     case "back":
-                        if (curCoord[0] < 20) {
-                            curCoord[0] += 1;
+                        curCoord[0] += 1;
+                        if (1 <= curCoord[0] && curCoord[0] < 20) {
                             validPosition = true;
+                        } else {
+                            curCoord[0] -= 1;
+                            validPosition = false;
                         }
                         break;
                     case "left":
-                        if ((0 < curCoord[1] && curCoord[1] <= 20)
-                                && (2 < curCoord[0] && curCoord[0] < 20)) {
-                            curCoord[0] -= 1;
+                        curCoord[0] -= 1;
+                        curCoord[1] -= 2;
+                        if ((1 <= curCoord[1] && curCoord[1] < 20)
+                                && (1 < curCoord[0] && curCoord[0] <= 20)) {
                             if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
                                 validPosition = false;
                                 curCoord[0] += 1;
+                                curCoord[1] += 2;
                             } else {
-                                curCoord[1] -= 1;
                                 robotDirection = "down";
                                 validPosition = true;
                             }
+                        } else {
+                            curCoord[0] += 1;
+                            curCoord[1] += 2;
                         }
                         break;
                     default:
@@ -1033,6 +1117,7 @@ public class GridMap extends View {
                 robotDirection = "error moveCurCoord";
                 break;
         }
+
         Logd("Enter checking for obstacles in destination 2x2 grid");
         if (getValidPosition())
             // check obstacle for new position
