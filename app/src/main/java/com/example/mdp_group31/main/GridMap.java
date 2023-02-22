@@ -251,35 +251,35 @@ public class GridMap extends View {
     }
 
     private void drawGridLines(Canvas canvas) {
-        for (int x = 0; x <= ROW; x ++)
+        for (int x = 0; x < ROW; x ++)
             canvas.drawLine(
                     cells[x][0].startX - (cellSize / 30) + cellSize,
                     cells[x][0].startY + (cellSize / 30),
-                    cells[x][0].startX - (cellSize / 30) + cellSize,
-                    cells[x][19].endY + (cellSize / 30),
+                    cells[x][20].startX - (cellSize / 30) + cellSize,
+                    cells[x][20].startY + (cellSize / 30),
                     whitePaint
             );
 
-        for (int y = 0; y <= COL; y ++)
+        for (int y = 0; y < COL; y ++)
             canvas.drawLine(
                     cells[0][y].startX - (cellSize / 30) + cellSize,
                     cells[0][y].startY + (cellSize / 30),
-                    cells[0][y].startX - (cellSize / 30) + cellSize,
-                    cells[19][y].endY + (cellSize / 30),
+                    cells[20][y].startX - (cellSize / 30) + cellSize,
+                    cells[20][y].startY + (cellSize / 30),
                     whitePaint
             );
     }
 
     private void drawGridNumber(Canvas canvas) {
         Paint textPaint = new Paint();
-        textPaint.setTextSize(22);
+        textPaint.setTextSize(17);
         textPaint.setColor(Color.BLACK);
 
         for (int x = 1; x <= COL; x++) {
             if (x >= 10)
                 canvas.drawText(
                         Integer.toString(x),
-                        cells[x][20].startX + (cellSize / 6),
+                        cells[x][20].startX + (cellSize / 5),
                         cells[x][20].startY + (cellSize / 1.5f),
                         textPaint
                 );
@@ -296,7 +296,7 @@ public class GridMap extends View {
             if ((20 - y) >= 10)
                 canvas.drawText(
                         Integer.toString(ROW - y),
-                        cells[0][y].startX + (cellSize / 6),
+                        cells[0][y].startX + (cellSize / 5),
                         cells[0][y].startY + (cellSize / 1.5f),
                         textPaint
                 );
@@ -328,7 +328,7 @@ public class GridMap extends View {
                     xCoord = cells[robotX][20 - robotY].startX;
                     yCoord = cells[robotX][20 - robotY].startY;
                     bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_up, op);
-                    mapscalable = Bitmap.createScaledBitmap(bm, 70,70, true);
+                    mapscalable = Bitmap.createScaledBitmap(bm, 51,51, true);
                     canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
                     break;
 
@@ -336,7 +336,7 @@ public class GridMap extends View {
                     xCoord = cells[robotX - 1][20 - (robotY + 1)].startX;
                     yCoord = cells[robotX - 1][20 - (robotY + 1)].startY;
                     bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_down, op);
-                    mapscalable = Bitmap.createScaledBitmap(bm, 70,70, true);
+                    mapscalable = Bitmap.createScaledBitmap(bm, 51,51, true);
                     canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
                     break;
 
@@ -344,7 +344,7 @@ public class GridMap extends View {
                     xCoord = cells[robotX - 1][20 - robotY].startX;
                     yCoord = cells[robotX - 1][20 - robotY].startY;
                     bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_right, op);
-                    mapscalable = Bitmap.createScaledBitmap(bm, 70,70, true);
+                    mapscalable = Bitmap.createScaledBitmap(bm, 51,51, true);
                     canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
                     break;
 
@@ -352,7 +352,7 @@ public class GridMap extends View {
                     xCoord = cells[robotX][20 - (robotY - 1)].startX;
                     yCoord = cells[robotX][20 - (robotY + 1)].startY;
                     bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_left, op);
-                    mapscalable = Bitmap.createScaledBitmap(bm, 70,70, true);
+                    mapscalable = Bitmap.createScaledBitmap(bm, 51,51, true);
                     canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
                     break;
 
@@ -369,7 +369,7 @@ public class GridMap extends View {
 
     private void drawObstacles(Canvas canvas) {
         Paint textPaint = new Paint();
-        textPaint.setTextSize(18);
+        textPaint.setTextSize(11);
         textPaint.setColor(Color.WHITE);
         textPaint.setTextAlign(Paint.Align.CENTER);
 
@@ -714,7 +714,6 @@ public class GridMap extends View {
         TextView directionAxisTextView =  ((Activity)this.getContext())
                 .findViewById(R.id.directionAxisTextView);
 
-        Logd("Value passed in is " + col + " " + row);
         xAxisTextView.setText(String.format(Integer.toString(col)));
         yAxisTextView.setText(String.format(Integer.toString(row)));
         directionAxisTextView.setText(direction);
@@ -887,7 +886,7 @@ public class GridMap extends View {
                         curCoord[0] += 3;
                         if ((1 < curCoord[1] && curCoord[1] <= 20)
                                 && (1 < curCoord[0] && curCoord[0] <= 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
+                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "right")) {
                                 validPosition = false;
                                 curCoord[1] -= 2;
                                 curCoord[0] -= 3;
@@ -914,7 +913,7 @@ public class GridMap extends View {
                         curCoord[0] -= 2;
                         if ((1 <= curCoord[1] && curCoord[1] <= 19)
                                 && (1 <= curCoord[0] && curCoord[0] < 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
+                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "left")) {
                                 validPosition = false;
                                 curCoord[1] -= 1;
                                 curCoord[0] += 2;
@@ -948,7 +947,7 @@ public class GridMap extends View {
                         curCoord[1] -= 3;
                         if ((1 <= curCoord[1] && curCoord[1] < 20)
                                 && (1 < curCoord[0] && curCoord[0] <= 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
+                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "down")) {
                                 validPosition = false;
                                 curCoord[0] -= 2;
                                 curCoord[1] += 3;
@@ -975,7 +974,7 @@ public class GridMap extends View {
                         curCoord[1] += 2;
                         if ((1 < curCoord[1] && curCoord[1] <= 20)
                                 && (1 <= curCoord[0] && curCoord[0] < 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
+                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "up")) {
                                 validPosition = false;
                                 curCoord[0] -= 1;
                                 curCoord[1] -= 2;
@@ -1008,7 +1007,7 @@ public class GridMap extends View {
                         curCoord[0] -= 3;
                         if ((1 <= curCoord[1] && curCoord[1] <= 19)
                                 && (1 <= curCoord[0] && curCoord[0] < 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
+                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "left")) {
                                 validPosition = false;
                                 curCoord[1] += 2;
                                 curCoord[0] += 3;
@@ -1036,7 +1035,7 @@ public class GridMap extends View {
                         curCoord[0] += 2;
                         if ((1 < curCoord[1] && curCoord[1] <= 20)
                                 && (1 < curCoord[0] && curCoord[0] <= 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
+                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "right")) {
                                 validPosition = false;
                                 curCoord[1] += 1;
                                 curCoord[0] -= 2;
@@ -1069,7 +1068,7 @@ public class GridMap extends View {
                         curCoord[1] += 3;
                         if ((1 < curCoord[1] && curCoord[1] <= 20)
                                 && (1 <= curCoord[0] && curCoord[0] < 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
+                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "up")) {
                                 validPosition = false;
                                 curCoord[0] += 2;
                                 curCoord[1] -= 3;
@@ -1096,7 +1095,7 @@ public class GridMap extends View {
                         curCoord[1] -= 2;
                         if ((1 <= curCoord[1] && curCoord[1] < 20)
                                 && (1 < curCoord[0] && curCoord[0] <= 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord)) {
+                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "down")) {
                                 validPosition = false;
                                 curCoord[0] += 1;
                                 curCoord[1] += 2;
@@ -1151,12 +1150,51 @@ public class GridMap extends View {
         Logd("Exiting moveRobot");
     }
 
-    public boolean checkObstaclesRightInFront(int[] coord, ArrayList<int[]> obstacles) {
-        Logd("Enter checking for obstacles directly in front");
-
-
-
-        Logd("Exit checking for obstacles directly in front");
+    public boolean checkObstaclesRightInFront(int[] coord, ArrayList<int[]> obstacles, String direction) {
+        for (int i = 0; i < obstacles.size(); i ++) {
+            int[] curObstacle = obstacles.get(i);
+            switch (direction) {
+                case "up":
+                    for (int j = coord[0]; j <= coord[0] + 1; j ++) {
+                        for (int k = coord[1] - 1; k <= coord[1]; k ++) {
+                            if (curObstacle[0] == j && curObstacle[1] == k) {
+                                Logd("Robot has hit an obstacle!!!");
+                                return true;
+                            }
+                        }
+                    }
+                    break;
+                case "down":
+                    for (int j = coord[0] - 1; j <= coord[0]; j ++) {
+                        for (int k = coord[1]; k <= coord[1] + 1; k ++) {
+                            if (curObstacle[0] == j && curObstacle[1] == k) {
+                                Logd("Robot has hit an obstacle!!!");
+                                return true;
+                            }
+                        }
+                    }
+                    break;
+                case "left":
+                    for (int j = coord[0]; j <= coord[0] + 1; j ++) {
+                        for (int k = coord[1]; k <= coord[1] + 1; k ++) {
+                            if (curObstacle[0] == j && curObstacle[1] == k) {
+                                Logd("Robot has hit an obstacle!!!");
+                                return true;
+                            }
+                        }
+                    }
+                    break;
+                case "right":
+                    for (int j = coord[0] - 1; j <= coord[0]; j ++) {
+                        for (int k = coord[1] - 1; k <= coord[1]; k ++) {
+                            if (curObstacle[0] == j && curObstacle[1] == k) {
+                                Logd("Robot has hit an obstacle!!!");
+                                return true;
+                            }
+                        }
+                    }
+            }
+        }
         return false;   // false means no obstacles
     }
 
