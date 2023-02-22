@@ -530,7 +530,7 @@ public class GridMap extends View {
                             IMAGE_BEARING[tRow - 1][tCol - 1] = newBearing;
                             setObstacleCoord(tCol, tRow, newID);
 
-                            String sentText = "ID|OB" + oldID + "-" + newID + "-" + newBearing;
+                            String sentText = "ID|" + oldID + "-" + newID + "-" + newBearing;
                             MainActivity.printMessage(sentText);
                             callInvalidate();
                         }
