@@ -105,11 +105,14 @@ public class MapTabFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 showLog("Clicked setStartPointToggleBtn");
-                if (setStartPointToggleBtn.getText().equals("STARTING POINT"))
+                if (setStartPointToggleBtn.getText().equals("STARTING POINT")) {
                     showToast("Cancelled selecting starting point");
+                    gridMap.setCanDrawRobot(false);
+                }
                 else if (setStartPointToggleBtn.getText().equals("CANCEL")) {
                     showToast("Please select starting point");
                     gridMap.setStartCoordStatus(true);
+                    gridMap.setCanDrawRobot(true);
                     gridMap.toggleCheckedBtn("setStartPointToggleBtn");
                 } else
                     showToast("Please select manual mode");
@@ -142,25 +145,23 @@ public class MapTabFragment extends Fragment {
                     String[] obstaclePosition = obsPos.split("\\|");
                     for (String s : obstaclePosition) {
                         String[] coords = s.split(",");
-                        gridMap.setObstacleCoord(Integer.parseInt(coords[0]) + 1, Integer.parseInt(coords[1]) + 1, coords[2]);
-                        String direction = "";
+                        coords[3] = "OB" + coords[3];
+                        gridMap.setObstacleCoord(Integer.parseInt(coords[0]), Integer.parseInt(coords[1]), coords[3]);
+                        String direction;
                         switch (coords[2]) {
-                            case "N":
-                                direction = "North";
-                                break;
                             case "E":
                                 direction = "East";
-                                break;
-                            case "W":
-                                direction = "West";
                                 break;
                             case "S":
                                 direction = "South";
                                 break;
+                            case "W":
+                                direction = "West";
+                                break;
                             default:
-                                direction = "";
+                                direction = "North";
                         }
-                        gridMap.IMAGE_BEARING[Integer.parseInt(coords[1])][Integer.parseInt(coords[0])] = direction;
+                        GridMap.IMAGE_BEARING[Integer.parseInt(coords[1]) - 1][Integer.parseInt(coords[0]) - 1] = direction;
                     }
                     gridMap.invalidate();
                     showLog("Exiting Load Button");

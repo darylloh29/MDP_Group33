@@ -314,6 +314,10 @@ public class GridMap extends View {
         return canDrawRobot;
     }
 
+    public void setCanDrawRobot(boolean canDrawRobot) {
+        GridMap.canDrawRobot = canDrawRobot;
+    }
+
     private void drawRobot(Canvas canvas, int[] curCoord) {
         float xCoord, yCoord;
         BitmapFactory.Options op = new BitmapFactory.Options();
@@ -551,7 +555,39 @@ public class GridMap extends View {
             }
 
             if (startCoordStatus) {
+                String direction = getRobotDirection();
+                boolean flag = false;
                 if (canDrawRobot) {
+                    if (direction.equals("None")) {
+                        direction = "up";
+                    }
+
+                    switch (direction) {
+                        case "up":
+                            if (initialColumn > 0 && initialColumn < 20 && initialRow > 1 && initialRow <= 20) {
+                                flag = true;
+                            }
+                            break;
+
+                        case "left":
+                            if (initialColumn > 0 && initialColumn < 20 && initialRow >= 1 && initialRow < 20) {
+                                flag = true;
+                            }
+                            break;
+
+                        case "right":
+                            if (initialColumn > 1 && initialColumn <= 20 && initialRow > 1 && initialRow <= 20) {
+                                flag = true;
+                            }
+                            break;
+
+                        case "down":
+                            if (initialColumn > 1 && initialColumn <= 20 && initialRow > 0 && initialRow < 20) {
+                                flag = true;
+                            }
+                            break;
+                    }
+
                     for (int i = 1; i < COL; i ++) {
                         for (int j = 1; j < ROW; j ++) {
                             if (cells[i][j].type.equals("robot")) {
@@ -563,16 +599,14 @@ public class GridMap extends View {
                     canDrawRobot = true;
                 }
 
-                this.setStartCoord(initialColumn, initialRow);
-                startCoordStatus = false;
-                String direction = getRobotDirection();
-                if (direction.equals("None")) {
-                    direction = "up";
+                if (flag) {
+                    this.setStartCoord(initialColumn, initialRow);
+                    startCoordStatus = false;
+                    this.updateRobotAxis(initialColumn, initialRow, direction);
+                    if (setStartPointToggleBtn.isChecked())
+                        setStartPointToggleBtn.toggle();
                 }
 
-                this.updateRobotAxis(initialColumn, initialRow, direction);
-                if (setStartPointToggleBtn.isChecked())
-                    setStartPointToggleBtn.toggle();
                 this.invalidate();
                 return true;
             }
@@ -715,7 +749,7 @@ public class GridMap extends View {
 
     public void setObstacleCoord(int col, int row, String obstacleID) {
         int parsedID = Integer.parseInt(obstacleID.substring(2));
-        int[] obstacleCoord = new int[]{row, col, parsedID};
+        int[] obstacleCoord = new int[]{col, row, parsedID};
         GridMap.obstacleCoord.add(obstacleCoord);
         OBSTACLE_LIST[row - 1][col - 1] = obstacleID;
         row = this.convertRow(row);
@@ -746,7 +780,7 @@ public class GridMap extends View {
 
         // drop outside of map entirely (anywhere on the screen)
         if (!dragEvent.getResult() && dragEvent.getAction() == DragEvent.ACTION_DRAG_ENDED) {
-            this.dropObstacle(obstacleID, initialRow, initialColumn);
+            this.dropObstacle(obstacleID, initialColumn, initialRow);
         }
 
         // drop on the row and column indices
@@ -757,7 +791,7 @@ public class GridMap extends View {
             // if dropped within mapview but outside drawn grids, remove obstacle from lists
             if (endColumn <= 0 || endRow <= 0) {
                 Logd("Dropped on indices row");
-                this.dropObstacle(obstacleID, initialRow, initialColumn);
+                this.dropObstacle(obstacleID, initialColumn, initialRow);
             }
 
             // if dropped within gridmap, shift it to new position unless already got existing
@@ -771,7 +805,7 @@ public class GridMap extends View {
                 if (!OBSTACLE_LIST[endRow - 1][endColumn - 1].equals("")) {
                     Logd("An obstacle is already at drop location");
                 } else {
-                    this.dropObstacle(obstacleID, initialRow, initialColumn);
+                    this.dropObstacle(obstacleID, initialColumn, initialRow);
                     setObstacleCoord(endColumn, endRow, tempID);
                     IMAGE_BEARING[endRow - 1][endColumn - 1] = tempBearing;
                 }
@@ -797,9 +831,9 @@ public class GridMap extends View {
             if (Arrays.equals(obstacleCoord.get(i), new int[]{x, y, Integer.parseInt(obstacleID.substring(2))})) {
                 obstacleX = obstacleCoord.get(i)[0];
                 obstacleY = obstacleCoord.get(i)[1];
-                OBSTACLE_LIST[obstacleX - 1][obstacleY - 1] = "";
-                IMAGE_BEARING[obstacleX - 1][obstacleY - 1] = "";
-                cells[obstacleY][20 - obstacleX].setType("unexplored");
+                OBSTACLE_LIST[obstacleY - 1][obstacleX - 1] = "";
+                IMAGE_BEARING[obstacleY - 1][obstacleX - 1] = "";
+                cells[obstacleX][20 - obstacleY].setType("unexplored");
                 obstacleCoord.remove(obstacleCoord.get(i));
                 return;
             }
@@ -827,7 +861,7 @@ public class GridMap extends View {
         Logd("Entering resetMap");
         TextView robotStatusTextView =  ((Activity)this.getContext())
                 .findViewById(R.id.robotStatus);
-        updateRobotAxis(1, 1, "None");
+        updateRobotAxis(0, 0, "None");
         robotStatusTextView.setText("Not Available");
 
 
@@ -1287,11 +1321,13 @@ public class GridMap extends View {
     }
 
     public static String saveObstacleList(){
-        String message ="";
-        for (int i = 0; i < obstacleCoord.size(); i++) {
+        String message = "";
+        for (int i = 0; i < obstacleCoord.size(); i ++) {
+            Logd("" + obstacleCoord.get(i)[0] + obstacleCoord.get(i)[1]);
             message += ((obstacleCoord.get(i)[0]) + ","
                     + (obstacleCoord.get(i)[1]) + ","
-                    + IMAGE_BEARING[obstacleCoord.get(i)[1]][obstacleCoord.get(i)[0]].charAt(0))+"|";
+                    + IMAGE_BEARING[obstacleCoord.get(i)[1] - 1][obstacleCoord.get(i)[0] - 1].charAt(0)) + ","
+                    + obstacleCoord.get(i)[2] + "|";
         }
         return message;
     }
@@ -1362,7 +1398,7 @@ public class GridMap extends View {
                 y = obstacleCoord.get(i)[1];
             }
         }
-        IMAGE_LIST[x - 1][y - 1] = imageID;
+        IMAGE_LIST[y - 1][x - 1] = imageID;
         this.invalidate();
     }
 }
