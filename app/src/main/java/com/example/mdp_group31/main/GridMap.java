@@ -552,7 +552,6 @@ public class GridMap extends View {
 
             if (startCoordStatus) {
                 if (canDrawRobot) {
-                    // removes green grids when user changes robot startpoint
                     for (int i = 1; i < COL; i ++) {
                         for (int j = 1; j < ROW; j ++) {
                             if (cells[i][j].type.equals("robot")) {
@@ -560,12 +559,6 @@ public class GridMap extends View {
                             }
                         }
                     }
-                    /*
-                    if (startCoord[0] >= 2 && startCoord[1] >= 2) {
-                        for (int x = startCoord[0] - 1; x <= startCoord[0]; x++)
-                            for (int y = startCoord[1] - 1; y <= startCoord[1]; y++)
-                                cells[x][y].setType("unexplored");
-                    }*/
                 } else {
                     canDrawRobot = true;
                 }
@@ -576,6 +569,7 @@ public class GridMap extends View {
                 if (direction.equals("None")) {
                     direction = "up";
                 }
+
                 this.updateRobotAxis(initialColumn, initialRow, direction);
                 if (setStartPointToggleBtn.isChecked())
                     setStartPointToggleBtn.toggle();
@@ -743,7 +737,6 @@ public class GridMap extends View {
 
         String tempID, tempBearing;
         int endColumn, endRow;
-        endColumn = endRow = -999;
         String obstacleID = OBSTACLE_LIST[initialRow - 1][initialColumn - 1];
 
         // if the currently dragged cell is empty, do nothing
@@ -1118,7 +1111,7 @@ public class GridMap extends View {
         }
 
         Logd("Enter checking for obstacles in destination 2x2 grid");
-        if (getValidPosition())
+        /*if (getValidPosition())
             // check obstacle for new position
             for (int x = curCoord[0] - 1; x <= curCoord[0]; x++) {
                 for (int y = curCoord[1] - 1; y <= curCoord[1]; y++) {
@@ -1137,7 +1130,8 @@ public class GridMap extends View {
                 }
                 if (!getValidPosition())
                     break;
-            }
+            }*/
+
         Logd("Exit checking for obstacles in destination 2x2 grid");
         if (getValidPosition())
             this.setCurCoord(curCoord[0], curCoord[1], robotDirection);

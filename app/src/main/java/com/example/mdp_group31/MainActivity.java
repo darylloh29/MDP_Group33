@@ -298,8 +298,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static void refreshLabel() {
-        xAxisTextView.setText(String.valueOf(gridMap.getCurCoord()[0] - 1));
-        yAxisTextView.setText(String.valueOf(gridMap.getCurCoord()[1] - 1));
+        xAxisTextView.setText(String.valueOf(gridMap.getCurCoord()[0]));
+        yAxisTextView.setText(String.valueOf(gridMap.getCurCoord()[1]));
         directionAxisTextView.setText(sharedPreferences.getString("direction", ""));
     }
 
