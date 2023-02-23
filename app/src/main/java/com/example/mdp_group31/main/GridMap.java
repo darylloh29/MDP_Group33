@@ -888,338 +888,281 @@ public class GridMap extends View {
 
     // e.g obstacle is on right side of 2x2 and can turn left and vice versa
     public void moveRobot(String direction) {
-        Logd("Entering moveRobot");
-        setValidPosition(false);
+        this.setValidPosition(false);   // assume the robot's move is invalid until checked otherwise
         int[] curCoord = this.getCurCoord();
-        ArrayList<int[]> obstacleCoord = this.getObstacleCoord();
-        String robotDirection = getRobotDirection();
-        String backupDirection = robotDirection;
+        String robotDirection = this.getRobotDirection();
 
-        // check if got obstacle when moving one grid up before turning in each case
         switch (robotDirection) {
             case "up":
                 switch (direction) {
                     case "forward":
                         curCoord[1] += 1;
-                        if (curCoord[1] <= 20) {
-                            validPosition = true;
+                        if (curCoord[1] <= 20 && this.validMove(curCoord, "up")) {
+                            this.setValidPosition(true);
                         } else {
                             curCoord[1] -= 1;
-                            validPosition = false;
+                            this.setValidPosition(false);
                         }
                         break;
                     case "right":
                         curCoord[1] += 2;
                         curCoord[0] += 3;
                         if ((1 < curCoord[1] && curCoord[1] <= 20)
-                                && (1 < curCoord[0] && curCoord[0] <= 20)) {
-                            if (validMove(curCoord, "right")) {
-                                validPosition = false;
-                                curCoord[1] -= 2;
-                                curCoord[0] -= 3;
-                            } else {
-                                robotDirection = "right";
-                                validPosition = true;
-                            }
+                                && (1 < curCoord[0] && curCoord[0] <= 20)
+                                && this.validMove(curCoord, "right")) {
+                            robotDirection = "right";
+                            this.setValidPosition(true);
                         } else {
+                            this.setValidPosition(false);
                             curCoord[1] -= 2;
                             curCoord[0] -= 3;
                         }
                         break;
                     case "back":
                         curCoord[1] -= 1;
-                        if (curCoord[1] > 1) {
-                            validPosition = true;
+                        if (curCoord[1] > 1 && this.validMove(curCoord, "up")) {
+                            this.setValidPosition(true);
                         } else {
                             curCoord[1] += 1;
-                            validPosition = false;
+                            this.setValidPosition(false);
                         }
                         break;
                     case "left":
                         curCoord[1] += 1;
                         curCoord[0] -= 2;
                         if ((1 <= curCoord[1] && curCoord[1] <= 19)
-                                && (1 <= curCoord[0] && curCoord[0] < 20)) {
-                            if (validMove(curCoord, "left")) {
-                                validPosition = false;
-                                curCoord[1] -= 1;
-                                curCoord[0] += 2;
-                            } else {
-                                robotDirection = "left";
-                                validPosition = true;
-                            }
+                                && (1 <= curCoord[0] && curCoord[0] < 20)
+                                && this.validMove(curCoord, "left")) {
+                            this.setValidPosition(true);
+                            robotDirection = "left";
                         } else {
                             curCoord[1] -= 1;
                             curCoord[0] += 2;
+                            this.setValidPosition(false);
                         }
                         break;
                     default:
-                        robotDirection = "error up";
-                        break;
+                        throw new IllegalArgumentException("Invalid direction: " + direction);
                 }
                 break;
             case "right":
                 switch (direction) {
                     case "forward":
                         curCoord[0] += 1;
-                        if (1 < curCoord[0] && curCoord[0] <= 20) {
-                            validPosition = true;
+                        if (curCoord[0] <= 20 && this.validMove(curCoord, "right")) {
+                            this.setValidPosition(true);
                         } else {
                             curCoord[0] -= 1;
-                            validPosition = false;
+                            this.setValidPosition(false);
                         }
                         break;
                     case "right":
                         curCoord[0] += 2;
                         curCoord[1] -= 3;
                         if ((1 <= curCoord[1] && curCoord[1] < 20)
-                                && (1 < curCoord[0] && curCoord[0] <= 20)) {
-                            if (validMove(curCoord, "down")) {
-                                validPosition = false;
-                                curCoord[0] -= 2;
-                                curCoord[1] += 3;
-                            } else {
-                                robotDirection = "down";
-                                validPosition = true;
-                            }
+                                && (1 < curCoord[0] && curCoord[0] <= 20)
+                                && this.validMove(curCoord, "down")) {
+                            robotDirection = "down";
+                            this.setValidPosition(true);
                         } else {
                             curCoord[0] -= 2;
                             curCoord[1] += 3;
+                            this.setValidPosition(false);
                         }
                         break;
                     case "back":
                         curCoord[0] -= 1;
-                        if (curCoord[0] > 1) {
-                            validPosition = true;
+                        if (curCoord[0] > 1 && this.validMove(curCoord, "right")) {
+                            this.setValidPosition(true);
                         } else {
                             curCoord[0] += 1;
-                            validPosition = false;
+                            this.setValidPosition(false);
                         }
                         break;
                     case "left":
                         curCoord[0] += 1;
                         curCoord[1] += 2;
                         if ((1 < curCoord[1] && curCoord[1] <= 20)
-                                && (1 <= curCoord[0] && curCoord[0] < 20)) {
-                            if (validMove(curCoord, "up")) {
-                                validPosition = false;
-                                curCoord[0] -= 1;
-                                curCoord[1] -= 2;
-                            } else {
-                                robotDirection = "up";
-                                validPosition = true;
-                            }
+                                && (1 <= curCoord[0] && curCoord[0] < 20)
+                                && this.validMove(curCoord, "up")) {
+                            robotDirection = "up";
+                            this.setValidPosition(true);
                         } else {
                             curCoord[0] -= 1;
                             curCoord[1] -= 2;
+                            this.setValidPosition(false);
                         }
                         break;
                     default:
-                        robotDirection = "error right";
+                        throw new IllegalArgumentException("Invalid direction: " + direction);
                 }
                 break;
             case "down":
                 switch (direction) {
                     case "forward":
                         curCoord[1] -= 1;
-                        if (curCoord[1] >= 1) {
-                            validPosition = true;
+                        if (curCoord[1] >= 1 && this.validMove(curCoord, "down")) {
+                            this.setValidPosition(true);
                         } else {
                             curCoord[1] += 1;
-                            validPosition = false;
+                            this.setValidPosition(false);
                         }
                         break;
                     case "right":
                         curCoord[1] -= 2;
                         curCoord[0] -= 3;
                         if ((1 <= curCoord[1] && curCoord[1] <= 19)
-                                && (1 <= curCoord[0] && curCoord[0] < 20)) {
-                            if (validMove(curCoord, "left")) {
-                                validPosition = false;
-                                curCoord[1] += 2;
-                                curCoord[0] += 3;
-                            } else {
-                                robotDirection = "left";
-                                validPosition = true;
-                            }
+                                && (1 <= curCoord[0] && curCoord[0] < 20)
+                                && this.validMove(curCoord, "left")) {
+                            robotDirection = "left";
+                            this.setValidPosition(true);
                         }
                         else {
                             curCoord[1] += 2;
                             curCoord[0] += 3;
+                            this.setValidPosition(false);
                         }
                         break;
                     case "back":
                         curCoord[1] += 1;
-                        if (curCoord[1] < 20) {
-                            validPosition = true;
+                        if (curCoord[1] < 20 && this.validMove(curCoord, "down")) {
+                            this.setValidPosition(true);
                         } else {
                             curCoord[1] -= 1;
-                            validPosition = false;
+                            this.setValidPosition(false);
                         }
                         break;
                     case "left":
                         curCoord[1] -= 1;
                         curCoord[0] += 2;
                         if ((1 < curCoord[1] && curCoord[1] <= 20)
-                                && (1 < curCoord[0] && curCoord[0] <= 20)) {
-                            if (validMove(curCoord, "right")) {
-                                validPosition = false;
-                                curCoord[1] += 1;
-                                curCoord[0] -= 2;
-                            } else {
-                                robotDirection = "right";
-                                validPosition = true;
-                            }
+                                && (1 < curCoord[0] && curCoord[0] <= 20)
+                                && this.validMove(curCoord, "right")) {
+                            robotDirection = "right";
+                            this.setValidPosition(true);
                         } else {
                             curCoord[1] += 1;
                             curCoord[0] -= 2;
+                            this.setValidPosition(false);
                         }
                         break;
                     default:
-                        robotDirection = "error down";
+                        throw new IllegalArgumentException("Invalid direction: " + direction);
                 }
                 break;
             case "left":
                 switch (direction) {
                     case "forward":
                         curCoord[0] -= 1;
-                        if (curCoord[0] >= 1) {
-                            validPosition = true;
+                        if (curCoord[0] >= 1 && this.validMove(curCoord, "left")) {
+                            this.setValidPosition(true);
                         } else {
                             curCoord[0] += 1;
-                            validPosition = false;
+                            this.setValidPosition(false);
                         }
                         break;
                     case "right":
                         curCoord[0] -= 2;
                         curCoord[1] += 3;
                         if ((1 < curCoord[1] && curCoord[1] <= 20)
-                                && (1 <= curCoord[0] && curCoord[0] < 20)) {
-                            if (validMove(curCoord, "up")) {
-                                validPosition = false;
-                                curCoord[0] += 2;
-                                curCoord[1] -= 3;
-                            } else {
-                                robotDirection = "up";
-                                validPosition = true;
-                            }
+                                && (1 <= curCoord[0] && curCoord[0] < 20)
+                                && this.validMove(curCoord, "up")) {
+                            robotDirection = "up";
+                            this.setValidPosition(true);
                         } else {
                             curCoord[0] += 2;
                             curCoord[1] -= 3;
+                            this.setValidPosition(false);
                         }
                         break;
                     case "back":
                         curCoord[0] += 1;
-                        if (1 <= curCoord[0] && curCoord[0] < 20) {
-                            validPosition = true;
+                        if (curCoord[0] < 20 && this.validMove(curCoord, "left")) {
+                            this.setValidPosition(true);
                         } else {
                             curCoord[0] -= 1;
-                            validPosition = false;
+                            this.setValidPosition(false);
                         }
                         break;
                     case "left":
                         curCoord[0] -= 1;
                         curCoord[1] -= 2;
                         if ((1 <= curCoord[1] && curCoord[1] < 20)
-                                && (1 < curCoord[0] && curCoord[0] <= 20)) {
-                            if (validMove(curCoord, "down")) {
-                                validPosition = false;
-                                curCoord[0] += 1;
-                                curCoord[1] += 2;
-                            } else {
-                                robotDirection = "down";
-                                validPosition = true;
-                            }
+                                && (1 < curCoord[0] && curCoord[0] <= 20)
+                                && this.validMove(curCoord, "down")) {
+                            robotDirection = "down";
+                            this.setValidPosition(true);
                         } else {
                             curCoord[0] += 1;
                             curCoord[1] += 2;
+                            this.setValidPosition(false);
                         }
                         break;
                     default:
-                        robotDirection = "error left";
+                        throw new IllegalArgumentException("Invalid direction: " + direction);
                 }
                 break;
             default:
-                robotDirection = "error moveCurCoord";
-                break;
+                throw new IllegalArgumentException("Invalid existing direction: " + direction);
         }
 
-        Logd("Enter checking for obstacles in destination 2x2 grid");
-        /*if (getValidPosition())
-            // check obstacle for new position
-            for (int x = curCoord[0] - 1; x <= curCoord[0]; x++) {
-                for (int y = curCoord[1] - 1; y <= curCoord[1]; y++) {
-                    for (int i = 0; i < obstacleCoord.size(); i++) {
-                        Logd("x-1 = " + (x-1) + ", y = " + y);
-                        Logd("obstacleCoord.get(" + i + ")[0] = " + obstacleCoord.get(i)[0]
-                                + ", obstacleCoord.get(" + i + ")[1] = " + obstacleCoord.get(i)[1]);
-                        if (obstacleCoord.get(i)[0] == (x-1) && obstacleCoord.get(i)[1] == y) { // HERE x
-                            setValidPosition(false);
-                            robotDirection = backupDirection;
-                            break;
-                        }
-                    }
-                    if (!getValidPosition())
-                        break;
-                }
-                if (!getValidPosition())
-                    break;
-            }*/
-
-        Logd("Exit checking for obstacles in destination 2x2 grid");
-        if (getValidPosition())
+        if (this.getValidPosition())
             this.setCurCoord(curCoord[0], curCoord[1], robotDirection);
         else {
-            if (direction.equals("forward") || direction.equals("back"))
-                robotDirection = backupDirection;
             this.setCurCoord(oldCoord[0], oldCoord[1], robotDirection);
         }
         this.invalidate();
-        Logd("Exiting moveRobot");
     }
 
-    public boolean validMove(int[] coord, String direction) {
-        for (int i = 0; i < this.getObstacleCoord().size(); i ++) {
-            int[] currentObstacle = this.getObstacleCoord().get(i);
+    /**
+     * Check if the robot's move is a valid move.
+     * This function is called after robot performs the move, so checking is done by examining if the robot 2x2 is currently sitting on the obstacle
+     * @param robotCoord The coordinate of the robot (note that robot moved first before checking, so this position may be invalid depending on the return value of this function)
+     * @param direction The direction of the robot (note that the robot has made a move, so this direction is if the move is valid, what the robot's direction will be)
+     * @return {@code true} if no obstacle hit by robot, {@code false} otherwise
+     */
+    public boolean validMove(int[] robotCoord, String direction) {
+        ArrayList<int[]> obstacleCoords = this.getObstacleCoord();
+        // examine for each obstacle on the map
+        for (int[] currentObstacle : obstacleCoords) {
+            int obstacleX = currentObstacle[0];
+            int obstacleY = currentObstacle[1];
+
+            /*
+            manual way to check if robot is sitting on the obstacle
+            since robot coordinate is based on the cell occupied by its top left wheel,
+            depending on the direction, the cells to be examined are different
+             */
             switch (direction) {
                 case "up":
-                    for (int j = coord[0]; j <= coord[0] + 1; j ++) {
-                        for (int k = coord[1] - 1; k <= coord[1]; k ++) {
-                            if (currentObstacle[0] == j && currentObstacle[1] == k) {
-                                return true;
-                            }
-                        }
+                    if (robotCoord[1] - 1 <= obstacleY && obstacleY <= robotCoord[1]
+                            && robotCoord[0] <= obstacleX && obstacleX <= robotCoord[0] + 1) {
+                        return false;
                     }
                     break;
                 case "down":
-                    for (int j = coord[0] - 1; j <= coord[0]; j ++) {
-                        for (int k = coord[1]; k <= coord[1] + 1; k ++) {
-                            if (currentObstacle[0] == j && currentObstacle[1] == k) {
-                                return true;
-                            }
-                        }
+                    if (robotCoord[1] <= obstacleY && obstacleY <= robotCoord[1] + 1
+                            && robotCoord[0] - 1 <= obstacleX && obstacleX <= robotCoord[0]) {
+                        return false;
                     }
                     break;
                 case "left":
-                    for (int j = coord[0]; j <= coord[0] + 1; j ++) {
-                        for (int k = coord[1]; k <= coord[1] + 1; k ++) {
-                            if (currentObstacle[0] == j && currentObstacle[1] == k) {
-                                return true;
-                            }
-                        }
+                    if (robotCoord[0] <= obstacleX && obstacleX <= robotCoord[0] + 1
+                            && robotCoord[1] <= obstacleY && obstacleY <= robotCoord[1] + 1) {
+                        return false;
                     }
                     break;
                 case "right":
-                    for (int j = coord[0] - 1; j <= coord[0]; j ++) {
-                        for (int k = coord[1] - 1; k <= coord[1]; k ++) {
-                            if (currentObstacle[0] == j && currentObstacle[1] == k) {
-                                return true;
-                            }
-                        }
+                    if (robotCoord[0] - 1 <= obstacleX && obstacleX <= robotCoord[0]
+                            && robotCoord[1] - 1 <= obstacleY && obstacleY <= robotCoord[1]) {
+                        return false;
                     }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid direction: " + direction);
             }
         }
-        return false;
+        return true;
     }
 
     private static class MyDragShadowBuilder extends DragShadowBuilder {
