@@ -886,12 +886,21 @@ public class GridMap extends View {
         this.invalidate();
     }
 
-    // e.g obstacle is on right side of 2x2 and can turn left and vice versa
+    /**
+     * Main driver function to move the robot, robot moves 1 cell at a time
+     * @param direction The direction the robot is moving, custome translation refer to the code
+     */
     public void moveRobot(String direction) {
         this.setValidPosition(false);   // assume the robot's move is invalid until checked otherwise
-        int[] curCoord = this.getCurCoord();
-        String robotDirection = this.getRobotDirection();
+        int[] curCoord = this.getCurCoord();    // current coordinate of the robot
+        int[] oldCoord = curCoord;
+        String robotDirection = this.getRobotDirection();   // current direction of the robot
 
+        /* For each current direction, and for each next direction,
+        we have to check if the move will hit an obstacle
+        This is done by calling validMove, which checks whether an obstacle is hit if we perform the move
+        The main content of this double-switch code snippet is to check if the move will cause the robot to go out of bound
+         */
         switch (robotDirection) {
             case "up":
                 switch (direction) {
@@ -1106,9 +1115,11 @@ public class GridMap extends View {
                 throw new IllegalArgumentException("Invalid existing direction: " + direction);
         }
 
+        // After checking, if the move is valid, then we update the coordinate of the robot
         if (this.getValidPosition())
             this.setCurCoord(curCoord[0], curCoord[1], robotDirection);
         else {
+            // Otherwise, we just reset the robot back to the original position
             this.setCurCoord(oldCoord[0], oldCoord[1], robotDirection);
         }
         this.invalidate();
