@@ -526,9 +526,11 @@ public class GridMap extends View {
                             String newID = mIDSpinner.getSelectedItem().toString();
                             String newBearing = mBearingSpinner.getSelectedItem().toString();
 
+                            dropObstacle(oldID, initialColumn, initialRow);
+                            setObstacleCoord(tCol, tRow, newID);
+
                             OBSTACLE_LIST[tRow - 1][tCol - 1] = newID;
                             IMAGE_BEARING[tRow - 1][tCol - 1] = newBearing;
-                            setObstacleCoord(tCol, tRow, newID);
 
                             String sentText = "ID|" + oldID + "-" + newID + "-" + newBearing;
                             MainActivity.printMessage(sentText);
@@ -1307,84 +1309,15 @@ public class GridMap extends View {
         Logd("Exit performAlgoCommand");
     }
 
-    //Week 8 Translation Mapping
-    public ArrayList<int[]> translateCoord(ArrayList<int[]> ogCoords, int protocol){
-        //Implementation of Protocol Number to decide the type of translation
-        //Sender to receiver
-        //Receiver to sender
-        if (protocol == 0){
-            for (int i = 0; i< ogCoords.size(); i++){
-                ogCoords.get(i)[1] = Math.abs(ogCoords.get(i)[1] - 19);
-            }
-        }
-        return ogCoords;
-    }
-
     public static String saveObstacleList(){
-        String message = "";
+        StringBuilder message = new StringBuilder();
         for (int i = 0; i < obstacleCoord.size(); i ++) {
             Logd("" + obstacleCoord.get(i)[0] + obstacleCoord.get(i)[1]);
-            message += ((obstacleCoord.get(i)[0]) + ","
-                    + (obstacleCoord.get(i)[1]) + ","
-                    + IMAGE_BEARING[obstacleCoord.get(i)[1] - 1][obstacleCoord.get(i)[0] - 1].charAt(0)) + ","
-                    + obstacleCoord.get(i)[2] + "|";
+            message.append(obstacleCoord.get(i)[0]).append(",").append(obstacleCoord.get(i)[1])
+                    .append(",").append(IMAGE_BEARING[obstacleCoord.get(i)[1] - 1][obstacleCoord.get(i)[0] - 1]
+                            .charAt(0)).append(",").append(obstacleCoord.get(i)[2]).append("|");
         }
-        return message;
-    }
-
-    // week 8 req to send algo obstacle info
-    //Code edited to remove 0.5
-    public String getObstacles() {
-        String msg = "[";
-        ArrayList<Character> directionArr = new ArrayList<>();
-
-        // public void setObstacleCoord(int col, int row) {
-        for (int i = 0; i < obstacleCoord.size(); i++) {
-            if (i==obstacleCoord.size()-1) {
-                //last obstacle!
-                directionArr.add(IMAGE_BEARING[obstacleCoord.get(i)[1]][obstacleCoord.get(i)[0]].charAt(0));
-                msg += ("["+(obstacleCoord.get(i)[0]) + ","
-                        + (obstacleCoord.get(i)[1]) + ","
-                        + IMAGE_BEARING[obstacleCoord.get(i)[1]][obstacleCoord.get(i)[0]].charAt(0))
-                        + "]]";
-            }
-            else{
-                directionArr.add(IMAGE_BEARING[obstacleCoord.get(i)[1]][obstacleCoord.get(i)[0]].charAt(0));
-                msg += ( "[" + (obstacleCoord.get(i)[0]) + ","
-                        + (obstacleCoord.get(i)[1]) + ","
-                        + IMAGE_BEARING[obstacleCoord.get(i)[1]][obstacleCoord.get(i)[0]].charAt(0)
-                        + "],");
-            }
-        }
-
-        //Translation Message to Algo
-        msg+="-";
-        msg+="[";
-
-        ArrayList<int[]> coordlist = new ArrayList<>();
-
-        for (int i = 0; i<obstacleCoord.size(); i++){
-            int col = obstacleCoord.get(i)[0];
-            int row = obstacleCoord.get(i)[1];
-            int[] newCoord = new int[]{col, row};
-            coordlist.add(newCoord);
-        }
-        ArrayList<int[]>translateCoords = translateCoord(coordlist,0);
-        for (int i = 0; i < translateCoords.size(); i++){
-            if (i ==  translateCoords.size()-1){
-                msg += "["+((translateCoords.get(i)[0]) + ","
-                        + (translateCoords.get(i)[1]) + ","
-                        + directionArr.get(i)) + "]";
-            }
-            else{
-                msg += "["+((translateCoords.get(i)[0]) + ","
-                        + (translateCoords.get(i)[1]) + ","
-                        + directionArr.get(i)
-                        + "],");
-            }
-        }
-        msg += "]\n";
-        return msg;
+        return message.toString();
     }
 
     // wk 8 task
