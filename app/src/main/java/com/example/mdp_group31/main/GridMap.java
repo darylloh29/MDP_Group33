@@ -116,7 +116,6 @@ public class GridMap extends View {
     private static String robotDirection = "None";
     private static int[] startCoord = new int[]{-1, -1};
     private static int[] curCoord = new int[]{-1, -1};
-    private static int[] oldCoord = new int[]{-1, -1};
     private static ArrayList<int[]> obstacleCoord = new ArrayList<>();
     private static boolean canDrawRobot = false;
     private static boolean startCoordStatus = false;
@@ -858,18 +857,15 @@ public class GridMap extends View {
 
 
     public void resetMap() {
-        Logd("Entering resetMap");
         TextView robotStatusTextView =  ((Activity)this.getContext())
                 .findViewById(R.id.robotStatus);
-        updateRobotAxis(0, 0, "None");
+        this.updateRobotAxis(0, 0, "None");
         robotStatusTextView.setText("Not Available");
-
 
         this.toggleCheckedBtn("None");
 
         startCoord = new int[]{-1, -1};
         curCoord = new int[]{-1, -1};
-        oldCoord = new int[]{-1, -1};
         robotDirection = "None";
         obstacleCoord = new ArrayList<>();
         mapDrawn = false;
@@ -891,9 +887,7 @@ public class GridMap extends View {
      * @param direction The direction the robot is moving, custome translation refer to the code
      */
     public void moveRobot(String direction) {
-        this.setValidPosition(false);   // assume the robot's move is invalid until checked otherwise
         int[] curCoord = this.getCurCoord();    // current coordinate of the robot
-        int[] oldCoord = curCoord;
         String robotDirection = this.getRobotDirection();   // current direction of the robot
 
         /* For each current direction, and for each next direction,
@@ -906,11 +900,8 @@ public class GridMap extends View {
                 switch (direction) {
                     case "forward":
                         curCoord[1] += 1;
-                        if (curCoord[1] <= 20 && this.validMove(curCoord, "up")) {
-                            this.setValidPosition(true);
-                        } else {
+                        if (! (curCoord[1] <= 20 && this.validMove(curCoord, "up"))) {
                             curCoord[1] -= 1;
-                            this.setValidPosition(false);
                         }
                         break;
                     case "right":
@@ -920,20 +911,15 @@ public class GridMap extends View {
                                 && (1 < curCoord[0] && curCoord[0] <= 20)
                                 && this.validMove(curCoord, "right")) {
                             robotDirection = "right";
-                            this.setValidPosition(true);
                         } else {
-                            this.setValidPosition(false);
                             curCoord[1] -= 2;
                             curCoord[0] -= 3;
                         }
                         break;
                     case "back":
                         curCoord[1] -= 1;
-                        if (curCoord[1] > 1 && this.validMove(curCoord, "up")) {
-                            this.setValidPosition(true);
-                        } else {
+                        if (! (curCoord[1] > 1 && this.validMove(curCoord, "up"))) {
                             curCoord[1] += 1;
-                            this.setValidPosition(false);
                         }
                         break;
                     case "left":
@@ -942,12 +928,10 @@ public class GridMap extends View {
                         if ((1 <= curCoord[1] && curCoord[1] <= 19)
                                 && (1 <= curCoord[0] && curCoord[0] < 20)
                                 && this.validMove(curCoord, "left")) {
-                            this.setValidPosition(true);
                             robotDirection = "left";
                         } else {
                             curCoord[1] -= 1;
                             curCoord[0] += 2;
-                            this.setValidPosition(false);
                         }
                         break;
                     default:
@@ -958,11 +942,8 @@ public class GridMap extends View {
                 switch (direction) {
                     case "forward":
                         curCoord[0] += 1;
-                        if (curCoord[0] <= 20 && this.validMove(curCoord, "right")) {
-                            this.setValidPosition(true);
-                        } else {
+                        if (! (curCoord[0] <= 20 && this.validMove(curCoord, "right"))) {
                             curCoord[0] -= 1;
-                            this.setValidPosition(false);
                         }
                         break;
                     case "right":
@@ -972,20 +953,15 @@ public class GridMap extends View {
                                 && (1 < curCoord[0] && curCoord[0] <= 20)
                                 && this.validMove(curCoord, "down")) {
                             robotDirection = "down";
-                            this.setValidPosition(true);
                         } else {
                             curCoord[0] -= 2;
                             curCoord[1] += 3;
-                            this.setValidPosition(false);
                         }
                         break;
                     case "back":
                         curCoord[0] -= 1;
-                        if (curCoord[0] > 1 && this.validMove(curCoord, "right")) {
-                            this.setValidPosition(true);
-                        } else {
+                        if (! (curCoord[0] > 1 && this.validMove(curCoord, "right"))) {
                             curCoord[0] += 1;
-                            this.setValidPosition(false);
                         }
                         break;
                     case "left":
@@ -995,11 +971,9 @@ public class GridMap extends View {
                                 && (1 <= curCoord[0] && curCoord[0] < 20)
                                 && this.validMove(curCoord, "up")) {
                             robotDirection = "up";
-                            this.setValidPosition(true);
                         } else {
                             curCoord[0] -= 1;
                             curCoord[1] -= 2;
-                            this.setValidPosition(false);
                         }
                         break;
                     default:
@@ -1010,11 +984,8 @@ public class GridMap extends View {
                 switch (direction) {
                     case "forward":
                         curCoord[1] -= 1;
-                        if (curCoord[1] >= 1 && this.validMove(curCoord, "down")) {
-                            this.setValidPosition(true);
-                        } else {
+                        if (! (curCoord[1] >= 1 && this.validMove(curCoord, "down"))) {
                             curCoord[1] += 1;
-                            this.setValidPosition(false);
                         }
                         break;
                     case "right":
@@ -1024,21 +995,16 @@ public class GridMap extends View {
                                 && (1 <= curCoord[0] && curCoord[0] < 20)
                                 && this.validMove(curCoord, "left")) {
                             robotDirection = "left";
-                            this.setValidPosition(true);
                         }
                         else {
                             curCoord[1] += 2;
                             curCoord[0] += 3;
-                            this.setValidPosition(false);
                         }
                         break;
                     case "back":
                         curCoord[1] += 1;
-                        if (curCoord[1] < 20 && this.validMove(curCoord, "down")) {
-                            this.setValidPosition(true);
-                        } else {
+                        if (! (curCoord[1] < 20 && this.validMove(curCoord, "down"))) {
                             curCoord[1] -= 1;
-                            this.setValidPosition(false);
                         }
                         break;
                     case "left":
@@ -1048,11 +1014,9 @@ public class GridMap extends View {
                                 && (1 < curCoord[0] && curCoord[0] <= 20)
                                 && this.validMove(curCoord, "right")) {
                             robotDirection = "right";
-                            this.setValidPosition(true);
                         } else {
                             curCoord[1] += 1;
                             curCoord[0] -= 2;
-                            this.setValidPosition(false);
                         }
                         break;
                     default:
@@ -1063,11 +1027,8 @@ public class GridMap extends View {
                 switch (direction) {
                     case "forward":
                         curCoord[0] -= 1;
-                        if (curCoord[0] >= 1 && this.validMove(curCoord, "left")) {
-                            this.setValidPosition(true);
-                        } else {
+                        if (! (curCoord[0] >= 1 && this.validMove(curCoord, "left"))) {
                             curCoord[0] += 1;
-                            this.setValidPosition(false);
                         }
                         break;
                     case "right":
@@ -1077,20 +1038,15 @@ public class GridMap extends View {
                                 && (1 <= curCoord[0] && curCoord[0] < 20)
                                 && this.validMove(curCoord, "up")) {
                             robotDirection = "up";
-                            this.setValidPosition(true);
                         } else {
                             curCoord[0] += 2;
                             curCoord[1] -= 3;
-                            this.setValidPosition(false);
                         }
                         break;
                     case "back":
                         curCoord[0] += 1;
-                        if (curCoord[0] < 20 && this.validMove(curCoord, "left")) {
-                            this.setValidPosition(true);
-                        } else {
+                        if (!(curCoord[0] < 20 && this.validMove(curCoord, "left"))) {
                             curCoord[0] -= 1;
-                            this.setValidPosition(false);
                         }
                         break;
                     case "left":
@@ -1100,11 +1056,9 @@ public class GridMap extends View {
                                 && (1 < curCoord[0] && curCoord[0] <= 20)
                                 && this.validMove(curCoord, "down")) {
                             robotDirection = "down";
-                            this.setValidPosition(true);
                         } else {
                             curCoord[0] += 1;
                             curCoord[1] += 2;
-                            this.setValidPosition(false);
                         }
                         break;
                     default:
@@ -1115,13 +1069,7 @@ public class GridMap extends View {
                 throw new IllegalArgumentException("Invalid existing direction: " + direction);
         }
 
-        // After checking, if the move is valid, then we update the coordinate of the robot
-        if (this.getValidPosition())
-            this.setCurCoord(curCoord[0], curCoord[1], robotDirection);
-        else {
-            // Otherwise, we just reset the robot back to the original position
-            this.setCurCoord(oldCoord[0], oldCoord[1], robotDirection);
-        }
+        this.setCurCoord(curCoord[0], curCoord[1], robotDirection);
         this.invalidate();
     }
 
