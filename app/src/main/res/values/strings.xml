@@ -24,5 +24,6 @@
     <!-- Map -->
     <string name="manual">MANUAL</string>
     <string name="auto">AUTO</string>
+    <string name="status_not_available">Not Available</string>
 
 </resources>

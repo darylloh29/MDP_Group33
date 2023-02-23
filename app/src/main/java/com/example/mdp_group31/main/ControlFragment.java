@@ -112,10 +112,6 @@ public class ControlFragment extends Fragment {
                 if (gridMap.getCanDrawRobot()) {
                     gridMap.moveRobot("forward");
                     MainActivity.refreshLabel();
-                    if (gridMap.getValidPosition())
-                        updateStatus("moving forward");
-                    else
-                        updateStatus("Unable to move forward");
                     MainActivity.printMessage("STM|Forward");
                 }
                 else
@@ -147,10 +143,6 @@ public class ControlFragment extends Fragment {
                 if (gridMap.getCanDrawRobot()) {
                     gridMap.moveRobot("back");
                     MainActivity.refreshLabel();
-                    if (gridMap.getValidPosition())
-                        updateStatus("moving backward");
-                    else
-                        updateStatus("Unable to move backward");
                     MainActivity.printMessage("STM|Back");
                 }
                 else
