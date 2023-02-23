@@ -130,7 +130,7 @@ public class MapTabFragment extends Fragment {
                     editor.putString("maps", "");
                     editor.commit();
                 }
-                getObsPos = GridMap.saveObstacleList();
+                getObsPos = gridMap.getAllObstacles();
                 editor.putString("maps",getObsPos);
                 editor.commit();
             }

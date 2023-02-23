@@ -365,7 +365,7 @@ public class MainActivity extends AppCompatActivity {
             //image format from RPI is "IMG-Obstacle ID-ImageID" eg IMG-3-7
             if (message.contains("IMG")) {
                 String[] cmd = message.split("-");
-                gridMap.updateIDFromRpi(cmd[1], cmd[2]);
+                gridMap.updateImageID(cmd[1], cmd[2]);
                 obstacleID = cmd[1];
             }
             // need to code a function to change robot position

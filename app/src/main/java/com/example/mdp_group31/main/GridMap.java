@@ -32,10 +32,8 @@ import androidx.annotation.Nullable;
 import com.example.mdp_group31.MainActivity;
 import com.example.mdp_group31.R;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 
 public class GridMap extends View {
@@ -915,7 +913,7 @@ public class GridMap extends View {
                         curCoord[0] += 3;
                         if ((1 < curCoord[1] && curCoord[1] <= 20)
                                 && (1 < curCoord[0] && curCoord[0] <= 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "right")) {
+                            if (validMove(curCoord, "right")) {
                                 validPosition = false;
                                 curCoord[1] -= 2;
                                 curCoord[0] -= 3;
@@ -942,7 +940,7 @@ public class GridMap extends View {
                         curCoord[0] -= 2;
                         if ((1 <= curCoord[1] && curCoord[1] <= 19)
                                 && (1 <= curCoord[0] && curCoord[0] < 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "left")) {
+                            if (validMove(curCoord, "left")) {
                                 validPosition = false;
                                 curCoord[1] -= 1;
                                 curCoord[0] += 2;
@@ -976,7 +974,7 @@ public class GridMap extends View {
                         curCoord[1] -= 3;
                         if ((1 <= curCoord[1] && curCoord[1] < 20)
                                 && (1 < curCoord[0] && curCoord[0] <= 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "down")) {
+                            if (validMove(curCoord, "down")) {
                                 validPosition = false;
                                 curCoord[0] -= 2;
                                 curCoord[1] += 3;
@@ -1003,7 +1001,7 @@ public class GridMap extends View {
                         curCoord[1] += 2;
                         if ((1 < curCoord[1] && curCoord[1] <= 20)
                                 && (1 <= curCoord[0] && curCoord[0] < 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "up")) {
+                            if (validMove(curCoord, "up")) {
                                 validPosition = false;
                                 curCoord[0] -= 1;
                                 curCoord[1] -= 2;
@@ -1036,7 +1034,7 @@ public class GridMap extends View {
                         curCoord[0] -= 3;
                         if ((1 <= curCoord[1] && curCoord[1] <= 19)
                                 && (1 <= curCoord[0] && curCoord[0] < 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "left")) {
+                            if (validMove(curCoord, "left")) {
                                 validPosition = false;
                                 curCoord[1] += 2;
                                 curCoord[0] += 3;
@@ -1064,7 +1062,7 @@ public class GridMap extends View {
                         curCoord[0] += 2;
                         if ((1 < curCoord[1] && curCoord[1] <= 20)
                                 && (1 < curCoord[0] && curCoord[0] <= 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "right")) {
+                            if (validMove(curCoord, "right")) {
                                 validPosition = false;
                                 curCoord[1] += 1;
                                 curCoord[0] -= 2;
@@ -1097,7 +1095,7 @@ public class GridMap extends View {
                         curCoord[1] += 3;
                         if ((1 < curCoord[1] && curCoord[1] <= 20)
                                 && (1 <= curCoord[0] && curCoord[0] < 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "up")) {
+                            if (validMove(curCoord, "up")) {
                                 validPosition = false;
                                 curCoord[0] += 2;
                                 curCoord[1] -= 3;
@@ -1124,7 +1122,7 @@ public class GridMap extends View {
                         curCoord[1] -= 2;
                         if ((1 <= curCoord[1] && curCoord[1] < 20)
                                 && (1 < curCoord[0] && curCoord[0] <= 20)) {
-                            if (checkObstaclesRightInFront(curCoord, obstacleCoord, "down")) {
+                            if (validMove(curCoord, "down")) {
                                 validPosition = false;
                                 curCoord[0] += 1;
                                 curCoord[1] += 2;
@@ -1180,15 +1178,14 @@ public class GridMap extends View {
         Logd("Exiting moveRobot");
     }
 
-    public boolean checkObstaclesRightInFront(int[] coord, ArrayList<int[]> obstacles, String direction) {
-        for (int i = 0; i < obstacles.size(); i ++) {
-            int[] curObstacle = obstacles.get(i);
+    public boolean validMove(int[] coord, String direction) {
+        for (int i = 0; i < this.getObstacleCoord().size(); i ++) {
+            int[] currentObstacle = this.getObstacleCoord().get(i);
             switch (direction) {
                 case "up":
                     for (int j = coord[0]; j <= coord[0] + 1; j ++) {
                         for (int k = coord[1] - 1; k <= coord[1]; k ++) {
-                            if (curObstacle[0] == j && curObstacle[1] == k) {
-                                Logd("Robot has hit an obstacle!!!");
+                            if (currentObstacle[0] == j && currentObstacle[1] == k) {
                                 return true;
                             }
                         }
@@ -1197,8 +1194,7 @@ public class GridMap extends View {
                 case "down":
                     for (int j = coord[0] - 1; j <= coord[0]; j ++) {
                         for (int k = coord[1]; k <= coord[1] + 1; k ++) {
-                            if (curObstacle[0] == j && curObstacle[1] == k) {
-                                Logd("Robot has hit an obstacle!!!");
+                            if (currentObstacle[0] == j && currentObstacle[1] == k) {
                                 return true;
                             }
                         }
@@ -1207,8 +1203,7 @@ public class GridMap extends View {
                 case "left":
                     for (int j = coord[0]; j <= coord[0] + 1; j ++) {
                         for (int k = coord[1]; k <= coord[1] + 1; k ++) {
-                            if (curObstacle[0] == j && curObstacle[1] == k) {
-                                Logd("Robot has hit an obstacle!!!");
+                            if (currentObstacle[0] == j && currentObstacle[1] == k) {
                                 return true;
                             }
                         }
@@ -1217,15 +1212,14 @@ public class GridMap extends View {
                 case "right":
                     for (int j = coord[0] - 1; j <= coord[0]; j ++) {
                         for (int k = coord[1] - 1; k <= coord[1]; k ++) {
-                            if (curObstacle[0] == j && curObstacle[1] == k) {
-                                Logd("Robot has hit an obstacle!!!");
+                            if (currentObstacle[0] == j && currentObstacle[1] == k) {
                                 return true;
                             }
                         }
                     }
             }
         }
-        return false;   // false means no obstacles
+        return false;
     }
 
     private static class MyDragShadowBuilder extends DragShadowBuilder {
@@ -1309,29 +1303,60 @@ public class GridMap extends View {
         Logd("Exit performAlgoCommand");
     }
 
-    public static String saveObstacleList(){
+    /**
+     * Retrieves all obstacles currently on the map, pre-process them into a String to be sent over to RPI
+     * @return Pre-processed Sring. Format: x-coord,y-coord,N/S/E/W,obstacleID|x-coord,y-coord,N/S/E/W,obstacleID|...
+     */
+    public String getAllObstacles() {
         StringBuilder message = new StringBuilder();
-        for (int i = 0; i < obstacleCoord.size(); i ++) {
-            Logd("" + obstacleCoord.get(i)[0] + obstacleCoord.get(i)[1]);
-            message.append(obstacleCoord.get(i)[0]).append(",").append(obstacleCoord.get(i)[1])
-                    .append(",").append(IMAGE_BEARING[obstacleCoord.get(i)[1] - 1][obstacleCoord.get(i)[0] - 1]
-                            .charAt(0)).append(",").append(obstacleCoord.get(i)[2]).append("|");
+        for (int i = 0; i < this.getObstacleCoord().size(); i ++) {
+            int[] currentObstacle = this.getObstacleCoord().get(i);
+            String imageBearing = IMAGE_BEARING[currentObstacle[1] - 1][currentObstacle[0] - 1];
+
+            /*
+            message is in the following format:
+            x-coord,y-coord,N/S/E/W,obstacleID|x-coord,y-coord,N/S/E/W,obstacleID|...
+             */
+            message.append(currentObstacle[0]).append(",").append(currentObstacle[1])
+                    .append(",").append(imageBearing.charAt(0)).append(",")
+                    .append(currentObstacle[2]).append("|");
         }
         return message.toString();
     }
 
-    // wk 8 task
-    public void updateIDFromRpi(String obstacleID, String imageID) {
-        Logd("starting updateIDFromRpi");
-        int x = -999;
-        int y = -999;
-        for (int i = 0; i < obstacleCoord.size(); i ++) {
-            if (Integer.parseInt(obstacleID) == obstacleCoord.get(i)[2]) {
-                x = obstacleCoord.get(i)[0];
-                y = obstacleCoord.get(i)[1];
+    /**
+     * RPI recognises obstacle, sends the obstacle ID and the image ID
+     * @param obstacleID The ID associated with the obstacle (sent over to RPI at the start). Note "OB" is stripped!
+     * @param imageID The ID associated with the image (refer to the image list)
+     */
+    public void updateImageID(String obstacleID, String imageID) {
+        int x = -1;     // x-cordinate (also the column)
+        int y = -1;     // y-cordinate (also the row)
+        for (int i = 0; i < this.getObstacleCoord().size(); i ++) {
+            /*
+            currentObstacle is a int[3] array
+            currentObstacle[0] is the x-coord of the obstacle
+            currentObstacle[1] is the y-coord of the obstacle
+            currentObstacle[2] is the obstacle ID (with "OB" stripped) of the obstacle
+             */
+            int[] currentObstacle = this.getObstacleCoord().get(i);
+            if (Integer.parseInt(obstacleID) == currentObstacle[2]) {
+                x = currentObstacle[0];
+                y = currentObstacle[1];
             }
         }
-        IMAGE_LIST[y - 1][x - 1] = imageID;
+        this.setImageID(imageID, x, y);
         this.invalidate();
+    }
+
+
+    /**
+     * Sets the imageID for the obstacle at [x,y]
+     * @param imageID The imageID recognised by RPI
+     * @param x The x-coord of the obstacle
+     * @param y The y-coord of the obstacle
+     */
+    public void setImageID(String imageID, int x, int y) {
+        IMAGE_LIST[y - 1][x - 1] = imageID;
     }
 }

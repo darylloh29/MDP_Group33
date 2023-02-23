@@ -187,7 +187,7 @@ public class ControlFragment extends Fragment {
                     timerHandler.removeCallbacks(timerRunnableExplore);
                 }
                 else if (exploreToggleBtn.getText().equals("STOP")) {
-                    String msg = GridMap.saveObstacleList();
+                    String msg = gridMap.getAllObstacles();
                     MainActivity.printMessage(msg);
                     MainActivity.stopTimerFlag = false;
                     showToast("Auto Movement/ImageRecog timer start!");
