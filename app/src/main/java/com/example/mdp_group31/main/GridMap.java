@@ -114,12 +114,13 @@ public class GridMap extends View {
     private final Paint arrowColor = new Paint();
     private final Paint fastestPathColor = new Paint();
     private static String robotDirection = "None";
-    private int[] startCoord = new int[]{-1, -1};
-    private int[] curCoord = new int[]{-1, -1};
+    private static int[] startCoord = new int[]{-1, -1};
+    private static int[] curCoord = new int[]{-1, -1};
     private static ArrayList<int[]> obstacleCoord = new ArrayList<>();
-    private boolean canDrawRobot = false;
-    private boolean startCoordStatus = false;
-    private boolean setObstacleStatus = false;
+    private static boolean canDrawRobot = false;
+    private static boolean startCoordStatus = false;
+    private static boolean setObstacleStatus = false;
+    private static final boolean setExploredStatus = false;
 
     private static final String TAG = "GridMap";
     private static final int COL = 20;
@@ -129,10 +130,10 @@ public class GridMap extends View {
     private boolean mapDrawn = false;
     public String[][] OBSTACLE_LIST = new String[20][20];
     public String[][] IMAGE_LIST = new String[20][20];
-    public String[][] IMAGE_BEARING = new String[20][20];
+    public static String[][] IMAGE_BEARING = new String[20][20];
     static ClipData clipData;
     static Object localState;
-    private int initialColumn, initialRow;
+    int initialColumn, initialRow;
 
     public GridMap(Context c) {
         super(c);
@@ -176,7 +177,7 @@ public class GridMap extends View {
             Arrays.fill(row, "");
             this.OBSTACLE_LIST[outter] = row;
             this.IMAGE_LIST[outter] = row;
-            this.IMAGE_BEARING[outter] = row;
+            GridMap.IMAGE_BEARING[outter] = row;
         }
     }
 
@@ -306,11 +307,11 @@ public class GridMap extends View {
     }
 
     public boolean getCanDrawRobot() {
-        return this.canDrawRobot;
+        return canDrawRobot;
     }
 
     public void setCanDrawRobot(boolean canDrawRobot) {
-        this.canDrawRobot = canDrawRobot;
+        GridMap.canDrawRobot = canDrawRobot;
     }
 
     private void drawRobot(Canvas canvas, int[] curCoord) {
@@ -541,10 +542,10 @@ public class GridMap extends View {
                 }
             }
 
-            if (this.startCoordStatus) {
+            if (startCoordStatus) {
                 String direction = getRobotDirection();
                 boolean flag = false;
-                if (this.canDrawRobot) {
+                if (canDrawRobot) {
                     if (direction.equals("None")) {
                         direction = "up";
                     }
@@ -583,7 +584,7 @@ public class GridMap extends View {
                         }
                     }
                 } else {
-                    this.canDrawRobot = true;
+                    canDrawRobot = true;
                 }
 
                 if (flag) {
@@ -599,12 +600,17 @@ public class GridMap extends View {
             }
 
             // add id and the image bearing, popup to ask for user input
-            if (this.setObstacleStatus) {
+            if (setObstacleStatus) {
                 if (initialRow <= 20 && initialColumn <= 20) {
                     OBSTACLE_LIST[initialRow - 1][initialColumn - 1] = "OB0";
                     IMAGE_BEARING[initialRow - 1][initialColumn - 1] = "North";
                     this.setObstacleCoord(initialColumn, initialRow, "OB0");
                 }
+                this.invalidate();
+                return true;
+            }
+            if (setExploredStatus) {
+                cells[initialColumn][20 - initialRow].setType("explored");
                 this.invalidate();
                 return true;
             }
@@ -625,8 +631,8 @@ public class GridMap extends View {
         switch (direction) {
             case "up":
                 if (col > 0 && col < 20 && row > 1 && row <= 20) {
-                    this.startCoord[0] = col;
-                    this.startCoord[1] = row;
+                    GridMap.startCoord[0] = col;
+                    GridMap.startCoord[1] = row;
                 } else {
                     return;
                 }
@@ -634,8 +640,8 @@ public class GridMap extends View {
 
             case "left":
                 if (col > 0 && col < 20 && row >= 1 && row < 20) {
-                    this.startCoord[0] = col;
-                    this.startCoord[1] = row;
+                    GridMap.startCoord[0] = col;
+                    GridMap.startCoord[1] = row;
                 } else {
                     return;
                 }
@@ -643,8 +649,8 @@ public class GridMap extends View {
 
             case "right":
                 if (col > 1 && col <= 20 && row > 1 && row <= 20) {
-                    this.startCoord[0] = col;
-                    this.startCoord[1] = row;
+                    GridMap.startCoord[0] = col;
+                    GridMap.startCoord[1] = row;
                 } else {
                     return;
                 }
@@ -652,8 +658,8 @@ public class GridMap extends View {
 
             case "down":
                 if (col > 1 && col <= 20 && row > 0 && row < 20) {
-                    this.startCoord[0] = col;
-                    this.startCoord[1] = row;
+                    GridMap.startCoord[0] = col;
+                    GridMap.startCoord[1] = row;
                 } else {
                     return;
                 }
@@ -676,8 +682,8 @@ public class GridMap extends View {
             return;
         }
 
-        this.curCoord[0] = col;
-        this.curCoord[1] = row;
+        GridMap.curCoord[0] = col;
+        GridMap.curCoord[1] = row;
         this.setRobotDirection(direction);
         this.updateRobotAxis(col, row, direction);
         this.updateCells("explored", col, row);
@@ -714,7 +720,7 @@ public class GridMap extends View {
      * @return The current coordinate of the robot
      */
     public int[] getCurCoord() {
-        return this.curCoord;
+        return GridMap.curCoord;
     }
 
     private int convertRow(int row) {
@@ -737,33 +743,33 @@ public class GridMap extends View {
 
     /**
      * Sets the initial coordinate of the robot at UI level
-     * @param x The initial x-coord of the robot
-     * @param y The initial y-coord of the robot
+     * @param col The initial x-coord of the robot
+     * @param row The initial y-coord of the robot
      * @param direction The initial direction of the robot
      */
-    private void updateRobotAxis(int x, int y, String direction) {
+    private void updateRobotAxis(int col, int row, String direction) {
         TextView xAxisTextView =  ((Activity)this.getContext()).findViewById(R.id.xAxisTextView);
         TextView yAxisTextView =  ((Activity)this.getContext()).findViewById(R.id.yAxisTextView);
         TextView directionAxisTextView =  ((Activity)this.getContext())
                 .findViewById(R.id.directionAxisTextView);
 
-        xAxisTextView.setText(String.format(Integer.toString(x)));
-        yAxisTextView.setText(String.format(Integer.toString(y)));
+        xAxisTextView.setText(String.format(Integer.toString(col)));
+        yAxisTextView.setText(String.format(Integer.toString(row)));
         directionAxisTextView.setText(direction);
     }
 
     /**
-     * Registers an obstacle at [x, y]
-     * @param x The x-coord of the obstacle
-     * @param y The y-coord of the obstacle
+     * Registers an obstacle at [col, row]
+     * @param col The x-coord of the obstacle
+     * @param row The y-coord of the obstacle
      * @param obstacleID The ID of the obstacle
      */
-    public void setObstacleCoord(int x, int y, String obstacleID) {
+    public void setObstacleCoord(int col, int row, String obstacleID) {
         int parsedID = Integer.parseInt(obstacleID.substring(2));
-        int[] obstacleCoord = new int[]{x, y, parsedID};
+        int[] obstacleCoord = new int[]{col, row, parsedID};
         this.addObstacleCoord(obstacleCoord);
-        this.setObstacleID(obstacleID, x, y);
-        this.updateCells("obstacle", x, y);
+        this.setObstacleID(obstacleID, col, row);
+        this.updateCells("obstacle", col, row);
     }
 
     /**
@@ -842,6 +848,10 @@ public class GridMap extends View {
         }
         this.invalidate();
         return true;
+    }
+
+    public void callInvalidate() {
+        this.invalidate();
     }
 
     /**
@@ -1221,12 +1231,12 @@ public class GridMap extends View {
         if ((x > 1 && x < 21) && (y > -1 && y < 20)) {
             Logd("within grid");
             setCurCoord(x, y, robotDirection);    // set new coords and direction
-            this.canDrawRobot = true;
+            canDrawRobot = true;
         }
         // if robot goes out of frame
         else {
             Logd("set canDrawRobot to false");
-            this.canDrawRobot = false;
+            canDrawRobot = false;
             curCoord[0] = -1;
             curCoord[1] = -1;
         }
