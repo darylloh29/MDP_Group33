@@ -161,7 +161,7 @@ public class MapTabFragment extends Fragment {
                             default:
                                 direction = "North";
                         }
-                        GridMap.IMAGE_BEARING[Integer.parseInt(coords[1]) - 1][Integer.parseInt(coords[0]) - 1] = direction;
+                        gridMap.IMAGE_BEARING[Integer.parseInt(coords[1]) - 1][Integer.parseInt(coords[0]) - 1] = direction;
                     }
                     gridMap.invalidate();
                     showLog("Exiting Load Button");

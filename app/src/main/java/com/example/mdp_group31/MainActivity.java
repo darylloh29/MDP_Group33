@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < 20; i++) {
             for (int j = 0; j < 20; j++) {
                 gridMap.OBSTACLE_LIST[i][j] = "";
-                GridMap.IMAGE_BEARING[i][j] = "";
+                gridMap.IMAGE_BEARING[i][j] = "";
             }
         }
 
