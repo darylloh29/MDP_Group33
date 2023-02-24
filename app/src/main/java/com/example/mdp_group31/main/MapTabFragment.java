@@ -133,6 +133,9 @@ public class MapTabFragment extends Fragment {
                 getObsPos = gridMap.getAllObstacles();
                 editor.putString("maps",getObsPos);
                 editor.commit();
+
+                getObsPos = "OBS|" + getObsPos;
+                MainActivity.printMessage(getObsPos);
             }
         });
 

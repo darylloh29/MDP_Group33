@@ -518,8 +518,6 @@ public class GridMap extends View {
                             setObstacleID(newID, tCol, tRow);
                             setImageBearing(newBearing, tCol, tRow);
 
-                            String sentText = "ID|" + oldID + "-" + newID + "-" + newBearing;
-                            MainActivity.printMessage(sentText);
                             invalidate();
                         }
                     });
@@ -841,10 +839,6 @@ public class GridMap extends View {
             } else {
                 throw new IllegalArgumentException("Drag event failed");
             }
-
-            String sentText = "LOC|" + obstacleID + "-" + this.initialRow + "-" + this.initialColumn
-                    + "-" + endRow + "-" + endColumn;
-            MainActivity.printMessage(sentText);
         }
         this.invalidate();
         return true;
