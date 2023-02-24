@@ -13,6 +13,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.util.AttributeSet;
+import android.util.Base64;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.MotionEvent;
@@ -134,6 +135,8 @@ public class GridMap extends View {
     static ClipData clipData;
     static Object localState;
     int initialColumn, initialRow;
+
+    String base64encodedString;
 
     public GridMap(Context c) {
         super(c);
@@ -1282,6 +1285,17 @@ public class GridMap extends View {
         }
         this.setImageID(imageID, x, y);
         this.invalidate();
+    }
+
+    public void displayImage(String encodedImageString, String obstacleID, boolean end) {
+        String pureBase64Encoded = "";
+        try {
+            String[] processString = encodedImageString.split(",");
+            pureBase64Encoded = processString[1];
+            this.base64encodedString += pureBase64Encoded;
+        } catch (Exception e) {
+            this.base64encodedString += encodedImageString;
+        }
     }
 
 

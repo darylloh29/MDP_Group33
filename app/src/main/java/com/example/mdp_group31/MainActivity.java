@@ -28,6 +28,7 @@ import com.example.mdp_group31.main.BluetoothConnectionService;
 import com.example.mdp_group31.main.BluetoothPopUp;
 import com.example.mdp_group31.main.ControlFragment;
 import com.example.mdp_group31.main.GridMap;
+import com.example.mdp_group31.main.ImageFragment;
 import com.example.mdp_group31.main.MapTabFragment;
 import com.example.mdp_group31.main.SectionsPagerAdapter;
 
@@ -91,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
         sectionsPagerAdapter.addFragment(new BluetoothChatFragment(), "CHAT");
         sectionsPagerAdapter.addFragment(new MapTabFragment(), "MAP CONFIG");
         sectionsPagerAdapter.addFragment(new ControlFragment(), "CHALLENGE");
+        sectionsPagerAdapter.addFragment(new ImageFragment(), "IMAGES");
 
         // TODO
         // dont know what this section does, best to not touch
@@ -433,6 +435,12 @@ public class MainActivity extends AppCompatActivity {
                     robotStatusTextView.setText("Week 9 Stopped");
                     ControlFragment.timerHandler.removeCallbacks(ControlFragment.timerRunnableFastest);
                 }
+            } else if (message.contains("SHOW")) {
+                System.out.println(message);
+                String[] cmd1 = message.split("-");
+                String obstacleID = cmd1[1];
+                String encodedImageString = cmd1[2];
+                gridMap.displayImage(encodedImageString, obstacleID, message.contains("READY"));
             }
         }
     };
