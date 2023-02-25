@@ -336,8 +336,8 @@ public class MainActivity extends AppCompatActivity {
      * Message format:
      * IMG-[obstacle id]-[image id] for image rec
      *  ex: IMG-3-7 for obstacle 3 === image id 7
-     * UPDATE-[x-coord]-[y-coord]-[<F>[Magnitude]/<N>[Bearing] - Put F if is straight motion, Put N for bearing if right turn
-     *   ex 1: UPDATE-4.5-6-F2 for moving robot 2 units forward from [4,6] (decimals are truncated)
+     * UPDATE-[x-coord]-[y-coord]-<N>[Bearing] - for updating robot coordinates
+     *   ex 1: UPDATE-4.5-6-0 for moving robot to [4,6] (no change in direction, so assume is F/B move)
      *   ex 2: UPDATE-6-6-45 for moving robot 45 degrees to the left, and final position is [6,6]
      *   ex 3: UPDATE-6-6-N45 for moving robot 45 degrees to the right, and final position is [6,6]
      * ENDED for signaling Android that task is completed
@@ -362,37 +362,13 @@ public class MainActivity extends AppCompatActivity {
                 int units = 0;
                 double bearing = 0;
                 boolean isForwardBack = true;
-                try {
-                    if (cmd[3].contains("N")) {
-                        bearing = (double) -1 * Float.parseFloat(cmd[3].substring(1));
-                    } else {
-                        bearing = Float.parseFloat(cmd[3]);
-                    }
-                    isForwardBack = false;
-                }
-                catch (Exception e) {
-                    units = Integer.parseInt(cmd[3].substring(1));
+                if (cmd[3].contains("N")) {
+                    bearing = (double) -1 * Float.parseFloat(cmd[3].substring(1));
+                } else {
+                    bearing = Float.parseFloat(cmd[3]);
                 }
 
-                if (!isForwardBack) {
-                    System.out.println(bearing);
-                    gridMap.moveRobot(new int[]{xPos, yPos}, bearing);
-                } else {
-                    switch (gridMap.getRobotDirection()) {
-                        case "up":
-                            gridMap.moveRobot(new int[]{xPos, yPos + units}, 0);
-                            break;
-                        case "down":
-                            gridMap.moveRobot(new int[]{xPos, yPos - units}, 0);
-                            break;
-                        case "left":
-                            gridMap.moveRobot(new int[]{xPos - units, yPos}, 0);
-                            break;
-                        case "right":
-                            gridMap.moveRobot(new int[]{xPos + units, yPos}, 0);
-                            break;
-                    }
-                }
+                gridMap.moveRobot(new int[]{xPos, yPos}, bearing);
             } else if (message.equals("ENDED")) {
                 // if wk 8 btn is checked, means running wk 8 challenge and likewise for wk 9
                 // end the corresponding timer
