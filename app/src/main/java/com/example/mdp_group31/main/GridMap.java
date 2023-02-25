@@ -1205,40 +1205,6 @@ public class GridMap extends View {
 
     // week 8 req to update robot pos when alg sends updates
     public void performAlgoCommand(int x, int y, String direction) {
-        Logd("Enter performAlgoCommand");
-        Logd("x = " + x + "\n" + "y = " + y);
-        if ((x > 1 && x < 21) && (y > -1 && y < 20)) {
-            Logd("within grid");
-            robotDirection = (robotDirection.equals("None")) ? "up" : robotDirection;
-            switch (direction) {
-                case "N":
-                    robotDirection = "up";
-                    break;
-                case "S":
-                    robotDirection = "down";
-                    break;
-                case "E":
-                    robotDirection = "right";
-                    break;
-                case "W":
-                    robotDirection = "left";
-                    break;
-            }
-        }
-        if ((x > 1 && x < 21) && (y > -1 && y < 20)) {
-            Logd("within grid");
-            setCurCoord(x, y, robotDirection);    // set new coords and direction
-            canDrawRobot = true;
-        }
-        // if robot goes out of frame
-        else {
-            Logd("set canDrawRobot to false");
-            canDrawRobot = false;
-            curCoord[0] = -1;
-            curCoord[1] = -1;
-        }
-        this.invalidate();
-        Logd("Exit performAlgoCommand");
     }
 
     /**

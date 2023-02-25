@@ -28,7 +28,6 @@ import com.example.mdp_group31.main.BluetoothConnectionService;
 import com.example.mdp_group31.main.BluetoothPopUp;
 import com.example.mdp_group31.main.ControlFragment;
 import com.example.mdp_group31.main.GridMap;
-import com.example.mdp_group31.main.ImageFragment;
 import com.example.mdp_group31.main.MapTabFragment;
 import com.example.mdp_group31.main.SectionsPagerAdapter;
 
@@ -92,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
         sectionsPagerAdapter.addFragment(new BluetoothChatFragment(), "CHAT");
         sectionsPagerAdapter.addFragment(new MapTabFragment(), "MAP CONFIG");
         sectionsPagerAdapter.addFragment(new ControlFragment(), "CHALLENGE");
-        sectionsPagerAdapter.addFragment(new ImageFragment(), "IMAGES");
 
         // TODO
         // dont know what this section does, best to not touch
@@ -246,24 +244,6 @@ public class MainActivity extends AppCompatActivity {
         editor = sharedPreferences.edit();
     }
 
-    // Send Coordinates to ALG
-    // TODO
-    // understand why is this used
-    public static void printCoords(String message) {
-        showLog("Displaying Coords untranslated and translated");
-        String[] strArr = message.split("-", 2);
-
-        if (BluetoothConnectionService.BluetoothConnectionStatus == true) {
-            //sends untranslated coordinates.
-            byte[] bytes = strArr[0].getBytes(Charset.defaultCharset());
-
-            BluetoothConnectionService.write(bytes);
-        }
-        refreshMessageReceivedNS("Untranslated Coordinates: " + strArr[0] + "\n");
-        refreshMessageReceivedNS("Translated Coordinates: " + strArr[1]);
-        showLog("Exiting printCoords");
-    }
-
     /**
      * Modular function for sending message over via BT to STM
      * @param message String message to be sent over via BT
@@ -369,52 +349,7 @@ public class MainActivity extends AppCompatActivity {
                 String[] cmd = message.split("-");
                 gridMap.updateImageID(cmd[1], cmd[2]);
                 obstacleID = cmd[1];
-            }
-            // need to code a function to change robot position
-            //UPDATE-X_Position-Y_Position-Direction
-            // parse UPDATE-[4.75, 8.5, '4.13234890238423']
-            else if (message.contains("UPDATE")) {
-
-                String[] cmd1 = message.split("-");
-                String l = cmd1[1];
-                String str1 = l.replace("[", "");
-                String str2 = str1.replace("]", "");
-                String str3 = str2.replace(" ", "");
-                String str4 = str3.replace("'", "");
-                String str5 = str4.replace("\'", "");
-                String[] cmd = str5.split(",");
-                double xPosD = Float.parseFloat(cmd[0]) + 1.00;
-                double yPosD = Float.parseFloat(cmd[1]);
-                int xPos = (int) xPosD;
-                int yPos = (int) yPosD;
-                String direction;
-                double radiansF = Float.parseFloat(cmd[2]);
-                if (0.78 < radiansF && radiansF < 2.35) {
-                    direction = "N";
-                } else if (2.35 < radiansF && radiansF < 3.93) {
-                    direction = "W";
-                } else if (3.93 < radiansF && radiansF < 5.50) {
-                    direction = "S";
-                } else {
-                    direction = "E";
-                }
-                //cmd[3] == N,S,E,W
-                //xPos and yPos is updated grid of RIGHT WHEEL
-                if (direction.equals("S")) {
-                    xPos = xPos + 1;
-                    yPos = yPos + 1;
-
-                }
-                ;
-                if (direction.equals("E")) {
-                    yPos = yPos + 1;
-                }
-                ;
-                if (direction.equals("W")) {
-                    xPos = xPos + 1;
-                }
-                ;
-                gridMap.performAlgoCommand(xPos, yPos, direction);
+            } else if (message.contains("UPDATE")) {
 
             } else if (message.equals("ENDED")) {
                 // if wk 8 btn is checked, means running wk 8 challenge and likewise for wk 9
@@ -435,12 +370,6 @@ public class MainActivity extends AppCompatActivity {
                     robotStatusTextView.setText("Week 9 Stopped");
                     ControlFragment.timerHandler.removeCallbacks(ControlFragment.timerRunnableFastest);
                 }
-            } else if (message.contains("SHOW")) {
-                System.out.println(message);
-                String[] cmd1 = message.split("-");
-                String obstacleID = cmd1[1];
-                String encodedImageString = cmd1[2];
-                gridMap.displayImage(encodedImageString, obstacleID, message.contains("READY"));
             }
         }
     };
