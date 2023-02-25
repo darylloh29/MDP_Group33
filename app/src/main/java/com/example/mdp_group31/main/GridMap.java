@@ -136,8 +136,6 @@ public class GridMap extends View {
     static Object localState;
     int initialColumn, initialRow;
 
-    String base64encodedString;
-
     public GridMap(Context c) {
         super(c);
         initMap();
@@ -1252,19 +1250,7 @@ public class GridMap extends View {
         this.setImageID(imageID, x, y);
         this.invalidate();
     }
-
-    public void displayImage(String encodedImageString, String obstacleID, boolean end) {
-        String pureBase64Encoded = "";
-        try {
-            String[] processString = encodedImageString.split(",");
-            pureBase64Encoded = processString[1];
-            this.base64encodedString += pureBase64Encoded;
-        } catch (Exception e) {
-            this.base64encodedString += encodedImageString;
-        }
-    }
-
-
+    
     /**
      * Sets the imageID for the obstacle at [x,y]
      * @param imageID The imageID recognised by RPI
