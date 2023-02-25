@@ -846,9 +846,6 @@ public class GridMap extends View {
         return true;
     }
 
-    public void callInvalidate() {
-        this.invalidate();
-    }
 
     /**
      * Removes an obstacle when it is dropped out of the map

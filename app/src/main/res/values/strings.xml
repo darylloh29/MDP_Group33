@@ -19,7 +19,7 @@
     <string name="f1Placeholder">Enter F1 value</string>
     <string name="f2Placeholder">Enter F2 value</string>
     <string name="save">SAVE</string>
-    <string name="cancel">CANCEL</string>
+    <string name="cancel">Cancel</string>
 
     <!-- Map -->
     <string name="manual">MANUAL</string>
