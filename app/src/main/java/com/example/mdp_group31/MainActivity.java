@@ -1,5 +1,6 @@
 package com.example.mdp_group31;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothDevice;
@@ -10,14 +11,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -34,22 +34,17 @@ import com.example.mdp_group31.main.SectionsPagerAdapter;
 import com.google.android.material.tabs.TabLayout;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.UUID;
 
 
 public class MainActivity extends AppCompatActivity {
-
-    final Handler handler = new Handler();
     // Declaration Variables
     private static SharedPreferences sharedPreferences;
     private static SharedPreferences.Editor editor;
-    private static Context context;
-
+    @SuppressLint("StaticFieldLeak") private static Context context;
     private static GridMap gridMap;
-    static TextView xAxisTextView, yAxisTextView, directionAxisTextView;
-    static TextView robotStatusTextView, bluetoothStatus, bluetoothDevice;
-    static ImageButton upBtn, downBtn, leftBtn, rightBtn;
+    @SuppressLint("StaticFieldLeak") static TextView xAxisTextView, yAxisTextView, directionAxisTextView;
+    @SuppressLint("StaticFieldLeak") static TextView robotStatusTextView, bluetoothStatus, bluetoothDevice;
+    @SuppressLint("StaticFieldLeak") static ImageButton upBtn, downBtn, leftBtn, rightBtn;
 
     BluetoothDevice mBTDevice;
     ProgressDialog myDialog;
@@ -60,9 +55,6 @@ public class MainActivity extends AppCompatActivity {
     public static boolean stopTimerFlag = false;
     public static boolean stopWk9TimerFlag = false;
 
-    private int g_coordX;
-    private int g_coordY;
-    private static UUID myUUID;
 
     /**
      * onCreate is called when the app runs
@@ -105,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Set up sharedPreferences
         MainActivity.context = getApplicationContext();
-        sharedPreferences();
+        MainActivity.sharedPreferences();
         editor.putString("message", "");
         editor.putString("direction", "None");
         editor.putString("connStatus", "Disconnected");
@@ -113,12 +105,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Toolbar
         ImageButton bluetoothButton = findViewById(R.id.bluetoothButton);
-        bluetoothButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent popup = new Intent(MainActivity.this, BluetoothPopUp.class);
-                startActivity(popup);
-            }
+        bluetoothButton.setOnClickListener(v -> {
+            Intent popup = new Intent(MainActivity.this, BluetoothPopUp.class);
+            startActivity(popup);
         });
 
         // Bluetooth Status
@@ -131,16 +120,6 @@ public class MainActivity extends AppCompatActivity {
         xAxisTextView = findViewById(R.id.xAxisTextView);
         yAxisTextView = findViewById(R.id.yAxisTextView);
         directionAxisTextView = findViewById(R.id.directionAxisTextView);
-
-        // initialize OBSTACLE_LIST and IMAGE_BEARING strings
-        // TODO
-        // to understand what OBSTACLE_LIST is (ArrayList of strings)
-        for (int i = 0; i < 20; i++) {
-            for (int j = 0; j < 20; j++) {
-                gridMap.OBSTACLE_LIST[i][j] = "";
-                GridMap.IMAGE_BEARING[i][j] = "";
-            }
-        }
 
         // Controller to manually control robot movement
         upBtn = findViewById(R.id.upBtn);
@@ -158,12 +137,7 @@ public class MainActivity extends AppCompatActivity {
         myDialog.setButton(
                 DialogInterface.BUTTON_NEGATIVE,
                 "Cancel",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                }
+                (dialog, which) -> dialog.dismiss()
         );
     }
 
@@ -248,12 +222,9 @@ public class MainActivity extends AppCompatActivity {
      * Modular function for sending message over via BT to STM
      * @param message String message to be sent over via BT
      */
-    // TODO
-    // change the obstacle update section to use this function instead!
     public static void printMessage(String message) {
         showLog("Entering printMessage");
         editor = sharedPreferences.edit();
-
         if (BluetoothConnectionService.BluetoothConnectionStatus) {
             byte[] bytes = message.getBytes(Charset.defaultCharset());
             BluetoothConnectionService.write(bytes);
@@ -271,14 +242,18 @@ public class MainActivity extends AppCompatActivity {
         BluetoothChatFragment.getMessageReceivedTextView().append(message + "\n");
     }
 
-    // TODO
-    // understand what this function and the function below means
+    /**
+     * Resets the robot's direction when user configures it in Map Config fragment
+     * @param direction The updated direction
+     */
     public void refreshDirection(String direction) {
         gridMap.setRobotDirection(direction);
         directionAxisTextView.setText(sharedPreferences.getString("direction", ""));
-        printMessage("Direction is set to " + direction);
     }
 
+    /**
+     * Updates the coordinate display whenever robot moves
+     */
     public static void refreshLabel() {
         xAxisTextView.setText(String.valueOf(gridMap.getCurCoord()[0]));
         yAxisTextView.setText(String.valueOf(gridMap.getCurCoord()[1]));
@@ -293,19 +268,25 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, message);
     }
 
-    // TODO
-    // understand what shared preference is
-    // STOPPED HERE
+    /**
+     * Get SharedPreference, which is a key-value pair that stores important information across activity
+     * @param context The current state of the application
+     * @return The SharedPreference object
+     */
     private static SharedPreferences getSharedPreferences(Context context) {
         return context.getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
     }
 
+    /**
+     * Handles BT connection
+     */
     private final BroadcastReceiver mBroadcastReceiver5 = new BroadcastReceiver() {
+        @SuppressLint("MissingPermission")
         @Override
         public void onReceive(Context context, Intent intent) {
             BluetoothDevice mDevice = intent.getParcelableExtra("Device");
             String status = intent.getStringExtra("Status");
-            sharedPreferences();
+            MainActivity.sharedPreferences();
 
             if (status.equals("connected")) {
                 try {
@@ -313,18 +294,13 @@ public class MainActivity extends AppCompatActivity {
                 } catch (NullPointerException e) {
                     e.printStackTrace();
                 }
-
-                Log.d(TAG, "mBroadcastReceiver5: Device now connected to " + mDevice.getName());
                 Toast.makeText(MainActivity.this, "Device now connected to "
                         + mDevice.getName(), Toast.LENGTH_SHORT).show();
                 editor.putString("connStatus", "Connected to " + mDevice.getName());
             } else if (status.equals("disconnected")) {
-                Log.d(TAG, "mBroadcastReceiver5: Disconnected from " + mDevice.getName());
                 Toast.makeText(MainActivity.this, "Disconnected from "
                         + mDevice.getName(), Toast.LENGTH_SHORT).show();
-
                 editor.putString("connStatus", "Disconnected");
-
                 myDialog.show();
             }
             editor.commit();
@@ -346,11 +322,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra("receivedMessage");
-            showLog("receivedMessage: message --- " + message);
-            int[] global_store = gridMap.getCurCoord();
-            g_coordX = global_store[0];
-            g_coordY = global_store[1];
-            ArrayList<String> mapCoord = new ArrayList<>();
             if (message.contains("IMG")) {
                 String[] cmd = message.split("-");
                 gridMap.updateImageID(cmd[1], cmd[2]);
@@ -359,33 +330,26 @@ public class MainActivity extends AppCompatActivity {
                 String[] cmd = message.split("-");
                 int xPos = (int) Float.parseFloat(cmd[1]);
                 int yPos = (int) Float.parseFloat(cmd[2]);
-                int units = 0;
-                double bearing = 0;
-                boolean isForwardBack = true;
+                double bearing;
                 if (cmd[3].contains("N")) {
                     bearing = (double) -1 * Float.parseFloat(cmd[3].substring(1));
                 } else {
                     bearing = Float.parseFloat(cmd[3]);
                 }
-
                 gridMap.moveRobot(new int[]{xPos, yPos}, bearing);
             } else if (message.equals("ENDED")) {
-                // if wk 8 btn is checked, means running wk 8 challenge and likewise for wk 9
-                // end the corresponding timer
                 ToggleButton exploreButton = findViewById(R.id.exploreToggleBtn2);
                 ToggleButton fastestButton = findViewById(R.id.fastestToggleBtn2);
 
                 if (exploreButton.isChecked()) {
-                    showLog("explorebutton is checked");
                     stopTimerFlag = true;
                     exploreButton.setChecked(false);
-                    robotStatusTextView.setText("Auto Movement/ImageRecog Stopped");
+                    robotStatusTextView.setText(R.string.image_rec_end);
                     ControlFragment.timerHandler.removeCallbacks(ControlFragment.timerRunnableExplore);
                 } else if (fastestButton.isChecked()) {
-                    showLog("fastestbutton is checked");
                     stopTimerFlag = true;
                     fastestButton.setChecked(false);
-                    robotStatusTextView.setText("Week 9 Stopped");
+                    robotStatusTextView.setText(R.string.fastest_car_end);
                     ControlFragment.timerHandler.removeCallbacks(ControlFragment.timerRunnableFastest);
                 }
             }
@@ -396,13 +360,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        switch (requestCode) {
-            case 1:
-                if (resultCode == Activity.RESULT_OK) {
-                    mBTDevice = data.getExtras().getParcelable("mBTDevice");
-                    myUUID = (UUID) data.getSerializableExtra("myUUID");
-                }
+        if (requestCode == 1) {
+            if (resultCode == Activity.RESULT_OK) {
+                mBTDevice = data.getExtras().getParcelable("mBTDevice");
+            }
         }
     }
 
@@ -439,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle outState) {
         showLog("Entering onSaveInstanceState");
         super.onSaveInstanceState(outState);
 

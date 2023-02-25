@@ -1,5 +1,6 @@
 package com.example.mdp_group31.main;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.mdp_group31.MainActivity;
+import com.example.mdp_group31.R;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +53,7 @@ public class BluetoothConnectionService {
     private class AcceptThread extends Thread{
         private final BluetoothServerSocket ServerSocket;
 
+        @SuppressLint("MissingPermission")
         public AcceptThread() {
             BluetoothServerSocket tmp = null;
 
@@ -96,6 +99,7 @@ public class BluetoothConnectionService {
             deviceUUID = u;
         }
 
+        @SuppressLint("MissingPermission")
         public void run(){
             BluetoothSocket tmp = null;
             Log.d(TAG, "RUN: mConnectThread");
@@ -186,6 +190,7 @@ public class BluetoothConnectionService {
         private final InputStream inStream;
         private final OutputStream outStream;
 
+        @SuppressLint("MissingPermission")
         public ConnectedThread(BluetoothSocket socket) {
             Log.d(TAG, "ConnectedThread: Starting.");
 
@@ -196,7 +201,7 @@ public class BluetoothConnectionService {
             BluetoothConnectionStatus = true;
 
             TextView status = MainActivity.getBluetoothStatus();
-            status.setText("Connected");
+            status.setText(R.string.bt_connected);
             status.setTextColor(Color.GREEN);
 
             TextView device = MainActivity.getConnectedDevice();
@@ -237,7 +242,7 @@ public class BluetoothConnectionService {
                     connectionStatus = new Intent("ConnectionStatus");
                     connectionStatus.putExtra("Status", "disconnected");
                     TextView status = MainActivity.getBluetoothStatus();
-                    status.setText("Disconnected");
+                    status.setText(R.string.bt_disconnect);
                     status.setTextColor(Color.RED);
                     connectionStatus.putExtra("Device", mDevice);
                     LocalBroadcastManager.getInstance(mContext).sendBroadcast(connectionStatus);

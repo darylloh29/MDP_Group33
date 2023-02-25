@@ -25,5 +25,9 @@
     <string name="manual">MANUAL</string>
     <string name="auto">AUTO</string>
     <string name="status_not_available">Not Available</string>
+    <string name="image_rec_end">Image Rec Completed</string>
+    <string name="fastest_car_end">Fastest Car Completed</string>
+    <string name="bt_disconnect">Disconnected</string>
+    <string name="bt_connected">Connected</string>
 
 </resources>
