@@ -108,62 +108,111 @@ public class ControlFragment extends Fragment {
         moveForwardImageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showLog("Clicked moveForwardImageBtn");
                 if (gridMap.getCanDrawRobot()) {
-                    gridMap.moveRobot("forward");
+                    int[] curCoord = gridMap.getCurCoord();
+                    String direction = gridMap.getRobotDirection();
+                    switch (direction) {
+                        case "up":
+                            gridMap.moveRobot(new int[]{curCoord[0], curCoord[1] + 1}, 0);
+                            break;
+                        case "left":
+                            gridMap.moveRobot(new int[]{curCoord[0] - 1, curCoord[1]}, 0);
+                            break;
+                        case "down":
+                            gridMap.moveRobot(new int[]{curCoord[0], curCoord[1] - 1}, 0);
+                            break;
+                        case "right":
+                            gridMap.moveRobot(new int[]{curCoord[0] + 1, curCoord[1]}, 0);
+                            break;
+                    }
+
                     MainActivity.refreshLabel();
-                    MainActivity.printMessage("STM|Forward");
                 }
                 else
                     updateStatus("Please press 'STARTING POINT'");
-                showLog("Exiting moveForwardImageBtn");
             }
         });
 
         turnRightImageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showLog("Clicked turnRightImageBtn");
                 if (gridMap.getCanDrawRobot()) {
-                    gridMap.moveRobot("right");
+                    int[] curCoord = gridMap.getCurCoord();
+                    String direction = gridMap.getRobotDirection();
+                    switch (direction) {
+                        case "up":
+                            gridMap.moveRobot(new int[]{curCoord[0] + 3, curCoord[1] + 2}, -90);
+                            break;
+                        case "left":
+                            gridMap.moveRobot(new int[]{curCoord[0] - 2, curCoord[1] + 3}, -90);
+                            break;
+                        case "down":
+                            gridMap.moveRobot(new int[]{curCoord[0] - 3, curCoord[1] - 2}, -90);
+                            break;
+                        case "right":
+                            gridMap.moveRobot(new int[]{curCoord[0] + 2, curCoord[1] - 3}, -90);
+                            break;
+                    }
+
                     MainActivity.refreshLabel();
-                    MainActivity.printMessage("STM|Right");
-                    System.out.println(Arrays.toString(gridMap.getCurCoord()));
                 }
                 else
                     updateStatus("Please press 'STARTING POINT'");
-                showLog("Exiting turnRightImageBtn");
             }
         });
 
         moveBackImageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showLog("Clicked moveBackwardImageBtn");
                 if (gridMap.getCanDrawRobot()) {
-                    gridMap.moveRobot("back");
+                    int[] curCoord = gridMap.getCurCoord();
+                    String direction = gridMap.getRobotDirection();
+                    switch (direction) {
+                        case "up":
+                            gridMap.moveRobot(new int[]{curCoord[0], curCoord[1] - 1}, 0);
+                            break;
+                        case "left":
+                            gridMap.moveRobot(new int[]{curCoord[0] + 1, curCoord[1]}, 0);
+                            break;
+                        case "down":
+                            gridMap.moveRobot(new int[]{curCoord[0], curCoord[1] + 1}, 0);
+                            break;
+                        case "right":
+                            gridMap.moveRobot(new int[]{curCoord[0] - 1, curCoord[1]}, 0);
+                            break;
+                    }
                     MainActivity.refreshLabel();
-                    MainActivity.printMessage("STM|Back");
                 }
-                else
+                else {
                     updateStatus("Please press 'STARTING POINT'");
-                showLog("Exiting moveBackwardImageBtn");
+                }
             }
         });
 
         turnLeftImageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showLog("Clicked turnLeftImageBtn");
                 if (gridMap.getCanDrawRobot()) {
-                    gridMap.moveRobot("left");
+                    int[] curCoord = gridMap.getCurCoord();
+                    String direction = gridMap.getRobotDirection();
+                    switch (direction) {
+                        case "up":
+                            gridMap.moveRobot(new int[]{curCoord[0] - 2, curCoord[1] + 1}, 90);
+                            break;
+                        case "left":
+                            gridMap.moveRobot(new int[]{curCoord[0] - 1, curCoord[1] - 2}, 90);
+                            break;
+                        case "down":
+                            gridMap.moveRobot(new int[]{curCoord[0] + 2, curCoord[1] - 1}, 90);
+                            break;
+                        case "right":
+                            gridMap.moveRobot(new int[]{curCoord[0] + 1, curCoord[1] + 2}, 90);
+                            break;
+                    }
                     MainActivity.refreshLabel();
-                    updateStatus("turning left");
-                    MainActivity.printMessage("STM|Left");
                 }
                 else
                     updateStatus("Please press 'STARTING POINT'");
-                showLog("Exiting turnLeftImageBtn");
             }
         });
 

@@ -115,6 +115,7 @@ public class GridMap extends View {
     private final Paint arrowColor = new Paint();
     private final Paint fastestPathColor = new Paint();
     private static String robotDirection = "None";
+    public static double robotBearing = 90;
     private static int[] startCoord = new int[]{-1, -1};
     private static int[] curCoord = new int[]{-1, -1};
     private static ArrayList<int[]> obstacleCoord = new ArrayList<>();
@@ -903,6 +904,7 @@ public class GridMap extends View {
         this.setCurCoord(-1, -1, "None");
         this.setRobotDirection("None");
         this.setCanDrawRobot(false);
+        GridMap.robotBearing = 90;
         obstacleCoord = new ArrayList<>();
         mapDrawn = false;
 
@@ -917,194 +919,67 @@ public class GridMap extends View {
     }
 
     /**
-     * Main driver function to move the robot, robot moves 1 cell at a time
-     * @param direction The direction the robot is moving, custome translation refer to the code
+     * Main driver function to move the robot
+     * @param angle The angle the robot is turning
      */
-    public void moveRobot(String direction) {
+    public void moveRobot(int[] nextCoord, double angle) {
         int[] curCoord = this.getCurCoord();    // current coordinate of the robot
         String robotDirection = this.getRobotDirection();   // current direction of the robot
-
-        /* For each current direction, and for each next direction,
-        we have to check if the move will hit an obstacle
-        This is done by calling validMove, which checks whether an obstacle is hit if we perform the move
-        The main content of this double-switch code snippet is to check if the move will cause the robot to go out of bound
-         */
-        switch (robotDirection) {
-            case "up":
-                switch (direction) {
-                    case "forward":
-                        curCoord[1] += 1;
-                        if (! (curCoord[1] <= 20 && this.validMove(curCoord, "up"))) {
-                            curCoord[1] -= 1;
-                        }
-                        break;
-                    case "right":
-                        curCoord[1] += 2;
-                        curCoord[0] += 3;
-                        if ((1 < curCoord[1] && curCoord[1] <= 20)
-                                && (1 < curCoord[0] && curCoord[0] <= 20)
-                                && this.validMove(curCoord, "right")) {
-                            robotDirection = "right";
-                        } else {
-                            curCoord[1] -= 2;
-                            curCoord[0] -= 3;
-                        }
-                        break;
-                    case "back":
-                        curCoord[1] -= 1;
-                        if (! (curCoord[1] > 1 && this.validMove(curCoord, "up"))) {
-                            curCoord[1] += 1;
-                        }
-                        break;
-                    case "left":
-                        curCoord[1] += 1;
-                        curCoord[0] -= 2;
-                        if ((1 <= curCoord[1] && curCoord[1] <= 19)
-                                && (1 <= curCoord[0] && curCoord[0] < 20)
-                                && this.validMove(curCoord, "left")) {
-                            robotDirection = "left";
-                        } else {
-                            curCoord[1] -= 1;
-                            curCoord[0] += 2;
-                        }
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Invalid direction: " + direction);
-                }
-                break;
-            case "right":
-                switch (direction) {
-                    case "forward":
-                        curCoord[0] += 1;
-                        if (! (curCoord[0] <= 20 && this.validMove(curCoord, "right"))) {
-                            curCoord[0] -= 1;
-                        }
-                        break;
-                    case "right":
-                        curCoord[0] += 2;
-                        curCoord[1] -= 3;
-                        if ((1 <= curCoord[1] && curCoord[1] < 20)
-                                && (1 < curCoord[0] && curCoord[0] <= 20)
-                                && this.validMove(curCoord, "down")) {
-                            robotDirection = "down";
-                        } else {
-                            curCoord[0] -= 2;
-                            curCoord[1] += 3;
-                        }
-                        break;
-                    case "back":
-                        curCoord[0] -= 1;
-                        if (! (curCoord[0] > 1 && this.validMove(curCoord, "right"))) {
-                            curCoord[0] += 1;
-                        }
-                        break;
-                    case "left":
-                        curCoord[0] += 1;
-                        curCoord[1] += 2;
-                        if ((1 < curCoord[1] && curCoord[1] <= 20)
-                                && (1 <= curCoord[0] && curCoord[0] < 20)
-                                && this.validMove(curCoord, "up")) {
-                            robotDirection = "up";
-                        } else {
-                            curCoord[0] -= 1;
-                            curCoord[1] -= 2;
-                        }
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Invalid direction: " + direction);
-                }
-                break;
-            case "down":
-                switch (direction) {
-                    case "forward":
-                        curCoord[1] -= 1;
-                        if (! (curCoord[1] >= 1 && this.validMove(curCoord, "down"))) {
-                            curCoord[1] += 1;
-                        }
-                        break;
-                    case "right":
-                        curCoord[1] -= 2;
-                        curCoord[0] -= 3;
-                        if ((1 <= curCoord[1] && curCoord[1] <= 19)
-                                && (1 <= curCoord[0] && curCoord[0] < 20)
-                                && this.validMove(curCoord, "left")) {
-                            robotDirection = "left";
-                        }
-                        else {
-                            curCoord[1] += 2;
-                            curCoord[0] += 3;
-                        }
-                        break;
-                    case "back":
-                        curCoord[1] += 1;
-                        if (! (curCoord[1] < 20 && this.validMove(curCoord, "down"))) {
-                            curCoord[1] -= 1;
-                        }
-                        break;
-                    case "left":
-                        curCoord[1] -= 1;
-                        curCoord[0] += 2;
-                        if ((1 < curCoord[1] && curCoord[1] <= 20)
-                                && (1 < curCoord[0] && curCoord[0] <= 20)
-                                && this.validMove(curCoord, "right")) {
-                            robotDirection = "right";
-                        } else {
-                            curCoord[1] += 1;
-                            curCoord[0] -= 2;
-                        }
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Invalid direction: " + direction);
-                }
-                break;
-            case "left":
-                switch (direction) {
-                    case "forward":
-                        curCoord[0] -= 1;
-                        if (! (curCoord[0] >= 1 && this.validMove(curCoord, "left"))) {
-                            curCoord[0] += 1;
-                        }
-                        break;
-                    case "right":
-                        curCoord[0] -= 2;
-                        curCoord[1] += 3;
-                        if ((1 < curCoord[1] && curCoord[1] <= 20)
-                                && (1 <= curCoord[0] && curCoord[0] < 20)
-                                && this.validMove(curCoord, "up")) {
-                            robotDirection = "up";
-                        } else {
-                            curCoord[0] += 2;
-                            curCoord[1] -= 3;
-                        }
-                        break;
-                    case "back":
-                        curCoord[0] += 1;
-                        if (!(curCoord[0] < 20 && this.validMove(curCoord, "left"))) {
-                            curCoord[0] -= 1;
-                        }
-                        break;
-                    case "left":
-                        curCoord[0] -= 1;
-                        curCoord[1] -= 2;
-                        if ((1 <= curCoord[1] && curCoord[1] < 20)
-                                && (1 < curCoord[0] && curCoord[0] <= 20)
-                                && this.validMove(curCoord, "down")) {
-                            robotDirection = "down";
-                        } else {
-                            curCoord[0] += 1;
-                            curCoord[1] += 2;
-                        }
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Invalid direction: " + direction);
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid existing direction: " + direction);
+        boolean flag = false;
+        System.out.print("Before");
+        System.out.println(GridMap.robotBearing);
+        GridMap.robotBearing = GridMap.robotBearing + angle;
+        System.out.print("After");
+        System.out.println(GridMap.robotBearing);
+        double offset = GridMap.robotBearing % 360;
+        System.out.print("Offset");
+        System.out.println(offset);
+        offset = this.handleAngle(offset);
+        System.out.println(offset);
+        // facing N
+        if (offset > 44 && offset < 135) {
+            if (nextCoord[1] <= 20 && nextCoord[1] > 1 && nextCoord[0] >= 1 && nextCoord[0] < 20
+                    && validMove(nextCoord, "up")) {
+                flag = true;
+                robotDirection = "up";
+            }
+        }
+        // facing W
+        else if (offset > 135 && offset < 225) {
+            if (nextCoord[1] < 20 && nextCoord[1] >= 1 && nextCoord[0] >= 1 && nextCoord[0] < 20
+                    && validMove(nextCoord, "left")) {
+                flag = true;
+                robotDirection = "left";
+            }
+        }
+        // facing S
+        else if (offset > 225 && offset < 315) {
+            if (nextCoord[1] < 20 && nextCoord[1] >= 1 && nextCoord[0] > 1 && nextCoord[0] <= 20
+                    && validMove(nextCoord, "down")) {
+                flag = true;
+                robotDirection = "down";
+            }
+        }
+        // facing E
+        else {
+            if (nextCoord[1] <= 20 && nextCoord[1] > 1 && nextCoord[0] > 1 && nextCoord[0] <= 20
+                    && validMove(nextCoord, "right")) {
+                flag = true;
+                robotDirection = "right";
+            }
         }
 
-        this.setCurCoord(curCoord[0], curCoord[1], robotDirection);
+        if (flag) {
+            this.setCurCoord(nextCoord[0], nextCoord[1], robotDirection);
+        }
         this.invalidate();
+    }
+
+    public double handleAngle(double angle) {
+        while (angle < 0) {
+            angle += 360;
+        }
+        return angle;
     }
 
     /**
@@ -1250,7 +1125,7 @@ public class GridMap extends View {
         this.setImageID(imageID, x, y);
         this.invalidate();
     }
-    
+
     /**
      * Sets the imageID for the obstacle at [x,y]
      * @param imageID The imageID recognised by RPI

@@ -331,10 +331,17 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    // message handler
-    // alg sends x,y,robotDirection,movementAction
-    // alg sends ALG,<obstacle id>
-    // rpi sends RPI,<image id>
+    /**
+     * Handles message sent from RPI
+     * Message format:
+     * IMG-[obstacle id]-[image id] for image rec
+     *  ex: IMG-3-7 for obstacle 3 === image id 7
+     * UPDATE-[x-coord]-[y-coord]-[<F>[Magnitude]/<N>[Bearing] - Put F if is straight motion, Put N for bearing if right turn
+     *   ex 1: UPDATE-4.5-6-F2 for moving robot 2 units forward from [4,6] (decimals are truncated)
+     *   ex 2: UPDATE-6-6-45 for moving robot 45 degrees to the left, and final position is [6,6]
+     *   ex 3: UPDATE-6-6-N45 for moving robot 45 degrees to the right, and final position is [6,6]
+     * ENDED for signaling Android that task is completed
+     */
     BroadcastReceiver messageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -344,13 +351,48 @@ public class MainActivity extends AppCompatActivity {
             g_coordX = global_store[0];
             g_coordY = global_store[1];
             ArrayList<String> mapCoord = new ArrayList<>();
-            //image format from RPI is "IMG-Obstacle ID-ImageID" eg IMG-3-7
             if (message.contains("IMG")) {
                 String[] cmd = message.split("-");
                 gridMap.updateImageID(cmd[1], cmd[2]);
                 obstacleID = cmd[1];
             } else if (message.contains("UPDATE")) {
+                String[] cmd = message.split("-");
+                int xPos = (int) Float.parseFloat(cmd[1]);
+                int yPos = (int) Float.parseFloat(cmd[2]);
+                int units = 0;
+                double bearing = 0;
+                boolean isForwardBack = true;
+                try {
+                    if (cmd[3].contains("N")) {
+                        bearing = (double) -1 * Float.parseFloat(cmd[3].substring(1));
+                    } else {
+                        bearing = Float.parseFloat(cmd[3]);
+                    }
+                    isForwardBack = false;
+                }
+                catch (Exception e) {
+                    units = Integer.parseInt(cmd[3].substring(1));
+                }
 
+                if (!isForwardBack) {
+                    System.out.println(bearing);
+                    gridMap.moveRobot(new int[]{xPos, yPos}, bearing);
+                } else {
+                    switch (gridMap.getRobotDirection()) {
+                        case "up":
+                            gridMap.moveRobot(new int[]{xPos, yPos + units}, 0);
+                            break;
+                        case "down":
+                            gridMap.moveRobot(new int[]{xPos, yPos - units}, 0);
+                            break;
+                        case "left":
+                            gridMap.moveRobot(new int[]{xPos - units, yPos}, 0);
+                            break;
+                        case "right":
+                            gridMap.moveRobot(new int[]{xPos + units, yPos}, 0);
+                            break;
+                    }
+                }
             } else if (message.equals("ENDED")) {
                 // if wk 8 btn is checked, means running wk 8 challenge and likewise for wk 9
                 // end the corresponding timer

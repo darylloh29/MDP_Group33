@@ -63,6 +63,20 @@ public class DirectionFragment extends DialogFragment {
                 showLog("Clicked saveBtn");
                 String direction = spinner.getSelectedItem().toString();
                 editor.putString("direction",direction);
+                switch (direction) {
+                    case "up":
+                        GridMap.robotBearing = 90;
+                        break;
+                    case "left":
+                        GridMap.robotBearing = 180;
+                        break;
+                    case "down":
+                        GridMap.robotBearing = 270;
+                        break;
+                    case "right":
+                        GridMap.robotBearing = 0;
+                        break;
+                }
                 ((MainActivity)getActivity()).refreshDirection(direction);
                 Toast.makeText(getActivity(), "Saving direction...", Toast.LENGTH_SHORT).show();
                 showLog("Exiting saveBtn");
