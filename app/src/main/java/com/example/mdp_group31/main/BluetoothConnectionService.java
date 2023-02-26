@@ -263,6 +263,7 @@ public class BluetoothConnectionService {
         private final BluetoothSocket mSocket;
         private final InputStream inStream;
         private final OutputStream outStream;
+        private boolean stopThread = false;
 
         @SuppressLint("MissingPermission")
         public ConnectedThread(BluetoothSocket socket) {
@@ -299,17 +300,32 @@ public class BluetoothConnectionService {
         public void run(){
             byte[] buffer = new byte[1024];
             int bytes;
+            StringBuilder messageBuffer = new StringBuilder();
 
-            while(true){
+            while (true){
                 try {
                     bytes = inStream.read(buffer);
                     String incomingmessage = new String(buffer, 0, bytes);
                     Log.d(TAG, "InputStream: "+ incomingmessage);
 
-                    Intent incomingMessageIntent = new Intent("incomingMessage");
-                    incomingMessageIntent.putExtra("receivedMessage", incomingmessage);
+                    messageBuffer.append(incomingmessage);
 
-                    LocalBroadcastManager.getInstance(mContext).sendBroadcast(incomingMessageIntent);
+                    // Check if the buffer contains the delimiter
+                    int delimiterIndex = messageBuffer.indexOf("\n");
+                    if (delimiterIndex != -1) {
+                        // Split the buffer contents and process each message
+                        String[] messages = messageBuffer.toString().split("\n");
+                        for (String message : messages) {
+                            // Send broadcast for each incoming message
+                            Intent incomingMessageIntent = new Intent("incomingMessage");
+                            incomingMessageIntent.putExtra("receivedMessage", message);
+
+                            LocalBroadcastManager.getInstance(mContext).sendBroadcast(incomingMessageIntent);
+                        }
+
+                        // Reset the message buffer
+                        messageBuffer = new StringBuilder();
+                    }
                 } catch (IOException e) {
                     Log.e(TAG, "Error reading input stream. "+e.getMessage());
 
@@ -340,6 +356,7 @@ public class BluetoothConnectionService {
         public void cancel(){
             Log.d(TAG, "cancel: Closing Client Socket");
             try{
+                this.stopThread = true;
                 mSocket.close();
             } catch(IOException e){
                 Log.e(TAG, "cancel: Failed to close ConnectThread mSocket " + e.getMessage());

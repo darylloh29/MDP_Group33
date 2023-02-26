@@ -934,7 +934,7 @@ public class GridMap extends View {
         offset = this.handleAngle(offset);
         System.out.println(offset);
         // facing N
-        if (offset > 44 && offset < 135) {
+        if (offset > 45 && offset <= 135) {
             if (nextCoord[1] <= 20 && nextCoord[1] > 1 && nextCoord[0] >= 1 && nextCoord[0] < 20
                     && validMove(nextCoord, "up")) {
                 flag = true;
@@ -942,7 +942,7 @@ public class GridMap extends View {
             }
         }
         // facing W
-        else if (offset > 135 && offset < 225) {
+        else if (offset > 135 && offset <= 225) {
             if (nextCoord[1] < 20 && nextCoord[1] >= 1 && nextCoord[0] >= 1 && nextCoord[0] < 20
                     && validMove(nextCoord, "left")) {
                 flag = true;

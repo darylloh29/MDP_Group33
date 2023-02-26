@@ -29,5 +29,11 @@
     <string name="fastest_car_end">Fastest Car Completed</string>
     <string name="bt_disconnect">Disconnected</string>
     <string name="bt_connected">Connected</string>
+    <string name="img_rec_stop">Image Recognition Completed</string>
+    <string name="img_rec_start">Image Recognition Started</string>
+    <string name="fastest_car_stop">Fastest Car Completed</string>
+    <string name="fastest_car_start">Fastest Car Started</string>
+    <string name="timer_default_val">00:00</string>
+    <string name="robot_status_na">Not Available</string>
 
 </resources>

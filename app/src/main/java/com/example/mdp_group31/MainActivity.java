@@ -38,22 +38,21 @@ import java.nio.charset.Charset;
 
 public class MainActivity extends AppCompatActivity {
     // Declaration Variables
-    private static SharedPreferences sharedPreferences;
-    private static SharedPreferences.Editor editor;
-    @SuppressLint("StaticFieldLeak") private static Context context;
-    private static GridMap gridMap;
-    @SuppressLint("StaticFieldLeak") static TextView xAxisTextView, yAxisTextView, directionAxisTextView;
-    @SuppressLint("StaticFieldLeak") static TextView robotStatusTextView, bluetoothStatus, bluetoothDevice;
-    @SuppressLint("StaticFieldLeak") static ImageButton upBtn, downBtn, leftBtn, rightBtn;
-
-    BluetoothDevice mBTDevice;
-    ProgressDialog myDialog;
-
-    String obstacleID;
-
-    private static final String TAG = "Main Activity";
-    public static boolean stopTimerFlag = false;
-    public static boolean stopWk9TimerFlag = false;
+    private static final String TAG = "MainActivity";
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
+    private Context context;
+    private GridMap gridMap;
+    private TextView robotXCoordText, robotYCoordText, robotDirectionText;
+    private TextView robotStatusText;
+    private static TextView bluetoothStatus, bluetoothDevice;
+    private ImageButton upBtn, downBtn, leftBtn, rightBtn;
+    private ProgressDialog btDisconnectDialog;
+    public boolean imgRecTimerFlag = false;
+    public boolean fastestCarTimerFlag = false;
+    private BluetoothChatFragment btFragment;
+    private MapTabFragment mapTabFragment;
+    private ControlFragment controlFragment;
 
 
     /**
@@ -70,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // choose which layout to be displayed, in this case the activity_main layout
-        setContentView(R.layout.activity_main);
+        this.setContentView(R.layout.activity_main);
 
         // SectionsPagerAdapter extends from FragmentPagerAdapter
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),
@@ -80,61 +79,66 @@ public class MainActivity extends AppCompatActivity {
         // CHAT is for sending and receiving BT message to and from STM
         // MAP CONFIG is for configuring the map layout
         // CHALLENGE provides quick access to execute the algo for img recognition & fastest path
-        sectionsPagerAdapter.addFragment(new BluetoothChatFragment(), "CHAT");
-        sectionsPagerAdapter.addFragment(new MapTabFragment(), "MAP CONFIG");
-        sectionsPagerAdapter.addFragment(new ControlFragment(), "CHALLENGE");
+        this.btFragment = new BluetoothChatFragment(this);
+        this.mapTabFragment = new MapTabFragment(this);
+        this.controlFragment = new ControlFragment(this);
+        this.gridMap = new GridMap(this);
+        sectionsPagerAdapter.addFragment(this.btFragment, "CHAT");
+        sectionsPagerAdapter.addFragment(this.mapTabFragment, "MAP CONFIG");
+        sectionsPagerAdapter.addFragment(this.controlFragment, "CHALLENGE");
 
         // TODO
         // dont know what this section does, best to not touch
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(sectionsPagerAdapter);
         viewPager.setOffscreenPageLimit(2);
+
         TabLayout tabs = findViewById(R.id.tabs);
         tabs.setupWithViewPager(viewPager);
+
         LocalBroadcastManager
                 .getInstance(this)
                 .registerReceiver(messageReceiver, new IntentFilter("incomingMessage"));
 
         // Set up sharedPreferences
-        MainActivity.context = getApplicationContext();
-        MainActivity.sharedPreferences();
-        editor.putString("message", "");
-        editor.putString("direction", "None");
-        editor.putString("connStatus", "Disconnected");
-        editor.commit();
+        this.context = getApplicationContext();
+        this.sharedPreferences();
+        this.editor.putString("message", "");
+        this.editor.putString("direction", "None");
+        this.editor.putString("connStatus", "Disconnected");
+        this.editor.commit();
 
         // Toolbar
         ImageButton bluetoothButton = findViewById(R.id.bluetoothButton);
         bluetoothButton.setOnClickListener(v -> {
             Intent popup = new Intent(MainActivity.this, BluetoothPopUp.class);
-            startActivity(popup);
+            this.startActivity(popup);
         });
 
         // Bluetooth Status
-        bluetoothStatus = findViewById(R.id.bluetoothStatus);
-        bluetoothDevice = findViewById(R.id.bluetoothConnectedDevice);
+        MainActivity.bluetoothStatus = findViewById(R.id.bluetoothStatus);
+        MainActivity.bluetoothDevice = findViewById(R.id.bluetoothConnectedDevice);
 
         // Map
-        gridMap = new GridMap(this);
-        gridMap = findViewById(R.id.mapView);
-        xAxisTextView = findViewById(R.id.xAxisTextView);
-        yAxisTextView = findViewById(R.id.yAxisTextView);
-        directionAxisTextView = findViewById(R.id.directionAxisTextView);
+        this.gridMap = findViewById(R.id.mapView);
+        this.robotXCoordText = findViewById(R.id.xAxisTextView);
+        this.robotYCoordText = findViewById(R.id.yAxisTextView);
+        this.robotDirectionText = findViewById(R.id.directionAxisTextView);
 
         // Controller to manually control robot movement
-        upBtn = findViewById(R.id.upBtn);
-        downBtn = findViewById(R.id.downBtn);
-        leftBtn = findViewById(R.id.leftBtn);
-        rightBtn = findViewById(R.id.rightBtn);
+        this.upBtn = findViewById(R.id.upBtn);
+        this.downBtn = findViewById(R.id.downBtn);
+        this.leftBtn = findViewById(R.id.leftBtn);
+        this.rightBtn = findViewById(R.id.rightBtn);
 
         // Robot Status
-        robotStatusTextView = findViewById(R.id.robotStatus);
+        this.robotStatusText = findViewById(R.id.robotStatus);
 
         // pops up when BT is disconnected
-        myDialog = new ProgressDialog(MainActivity.this);
-        myDialog.setMessage("Waiting for other device to reconnect...");
-        myDialog.setCancelable(false);
-        myDialog.setButton(
+        this.btDisconnectDialog = new ProgressDialog(MainActivity.this);
+        this.btDisconnectDialog.setMessage("Waiting for other device to reconnect...");
+        this.btDisconnectDialog.setCancelable(false);
+        this.btDisconnectDialog.setButton(
                 DialogInterface.BUTTON_NEGATIVE,
                 "Cancel",
                 (dialog, which) -> dialog.dismiss()
@@ -146,8 +150,8 @@ public class MainActivity extends AppCompatActivity {
      * Used in {@link ControlFragment} and {@link MapTabFragment}
      * @return {@link GridMap}
      */
-    public static GridMap getGridMap() {
-        return gridMap;
+    public GridMap getGridMap() {
+        return this.gridMap;
     }
 
     /**
@@ -155,8 +159,8 @@ public class MainActivity extends AppCompatActivity {
      * Used in {@link ControlFragment}
      * @return "Auto Movement/ImageRecog Stopped" or "Week 9 Stopped"
      */
-    public static TextView getRobotStatusTextView() {
-        return robotStatusTextView;
+    public TextView getRobotStatusText() {
+        return this.robotStatusText;
     }
 
     /**
@@ -164,8 +168,8 @@ public class MainActivity extends AppCompatActivity {
      * Used in {@link ControlFragment}
      * @return The manual control UP button
      */
-    public static ImageButton getUpBtn() {
-        return upBtn;
+    public ImageButton getUpBtn() {
+        return this.upBtn;
     }
 
     /**
@@ -173,8 +177,8 @@ public class MainActivity extends AppCompatActivity {
      * Used in {@link ControlFragment}
      * @return The manual control DOWN button
      */
-    public static ImageButton getDownBtn() {
-        return downBtn;
+    public ImageButton getDownBtn() {
+        return this.downBtn;
     }
 
     /**
@@ -182,8 +186,8 @@ public class MainActivity extends AppCompatActivity {
      * Used in {@link ControlFragment}
      * @return The manual control LEFT button
      */
-    public static ImageButton getLeftBtn() {
-        return leftBtn;
+    public ImageButton getLeftBtn() {
+        return this.leftBtn;
     }
 
     /**
@@ -191,8 +195,8 @@ public class MainActivity extends AppCompatActivity {
      * Used in {@link ControlFragment}
      * @return The manual control RIGHT button
      */
-    public static ImageButton getRightBtn() {
-        return rightBtn;
+    public ImageButton getRightBtn() {
+        return this.rightBtn;
     }
 
     /**
@@ -213,33 +217,30 @@ public class MainActivity extends AppCompatActivity {
         return bluetoothDevice;
     }
 
-    public static void sharedPreferences() {
-        sharedPreferences = MainActivity.getSharedPreferences(MainActivity.context);
-        editor = sharedPreferences.edit();
+    public void sharedPreferences() {
+        this.sharedPreferences = this.getSharedPreferences(this.context);
+        this.editor = this.sharedPreferences.edit();
     }
 
     /**
      * Modular function for sending message over via BT to STM
      * @param message String message to be sent over via BT
      */
-    public static void printMessage(String message) {
-        showLog("Entering printMessage");
-        editor = sharedPreferences.edit();
+    public void sendMessage(String message) {
+        this.editor = this.sharedPreferences.edit();
         if (BluetoothConnectionService.BluetoothConnectionStatus) {
             byte[] bytes = message.getBytes(Charset.defaultCharset());
             BluetoothConnectionService.write(bytes);
         }
-        showLog(message);
-        refreshMessageReceivedNS(message);
-        showLog("Exiting printMessage");
+        this.nextLineOnChatMsg(message);
     }
 
     /**
      * Basically adds a new line after the message is sent, so that the next message will appear on new line
      * @param message Last message that was sent over via BT
      */
-    public static void refreshMessageReceivedNS(String message) {
-        BluetoothChatFragment.getMessageReceivedTextView().append(message + "\n");
+    public void nextLineOnChatMsg(String message) {
+        this.btFragment.getMessageReceivedTextView().append(message + "\n");
     }
 
     /**
@@ -247,24 +248,24 @@ public class MainActivity extends AppCompatActivity {
      * @param direction The updated direction
      */
     public void refreshDirection(String direction) {
-        gridMap.setRobotDirection(direction);
-        directionAxisTextView.setText(sharedPreferences.getString("direction", ""));
+        this.gridMap.setRobotDirection(direction);
+        this.robotDirectionText.setText(this.sharedPreferences.getString("direction", ""));
     }
 
     /**
      * Updates the coordinate display whenever robot moves
      */
-    public static void refreshLabel() {
-        xAxisTextView.setText(String.valueOf(gridMap.getCurCoord()[0]));
-        yAxisTextView.setText(String.valueOf(gridMap.getCurCoord()[1]));
-        directionAxisTextView.setText(sharedPreferences.getString("direction", ""));
+    public void refreshCoordinate() {
+        this.robotXCoordText.setText(String.valueOf(this.gridMap.getCurCoord()[0]));
+        this.robotYCoordText.setText(String.valueOf(this.gridMap.getCurCoord()[1]));
+        this.robotDirectionText.setText(this.sharedPreferences.getString("direction", ""));
     }
 
     /**
      * Debugging function to show TAG + message, where TAG is the java file the message was logged
      * @param message the message to be logged
      */
-    private static void showLog(String message) {
+    private void showLog(String message) {
         Log.d(TAG, message);
     }
 
@@ -273,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
      * @param context The current state of the application
      * @return The SharedPreference object
      */
-    private static SharedPreferences getSharedPreferences(Context context) {
+    private SharedPreferences getSharedPreferences(Context context) {
         return context.getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
     }
 
@@ -286,11 +287,11 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             BluetoothDevice mDevice = intent.getParcelableExtra("Device");
             String status = intent.getStringExtra("Status");
-            MainActivity.sharedPreferences();
+            sharedPreferences();
 
             if (status.equals("connected")) {
                 try {
-                    myDialog.dismiss();
+                    btDisconnectDialog.dismiss();
                 } catch (NullPointerException e) {
                     e.printStackTrace();
                 }
@@ -301,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Disconnected from "
                         + mDevice.getName(), Toast.LENGTH_SHORT).show();
                 editor.putString("connStatus", "Disconnected");
-                myDialog.show();
+                btDisconnectDialog.show();
             }
             editor.commit();
         }
@@ -325,7 +326,6 @@ public class MainActivity extends AppCompatActivity {
             if (message.contains("IMG")) {
                 String[] cmd = message.split("-");
                 gridMap.updateImageID(cmd[1], cmd[2]);
-                obstacleID = cmd[1];
             } else if (message.contains("UPDATE")) {
                 String[] cmd = message.split("-");
                 int xPos = (int) Float.parseFloat(cmd[1]);
@@ -338,19 +338,19 @@ public class MainActivity extends AppCompatActivity {
                 }
                 gridMap.moveRobot(new int[]{xPos, yPos}, bearing);
             } else if (message.equals("ENDED")) {
-                ToggleButton exploreButton = findViewById(R.id.exploreToggleBtn2);
-                ToggleButton fastestButton = findViewById(R.id.fastestToggleBtn2);
+                ToggleButton imgRecBtn = findViewById(R.id.exploreToggleBtn2);
+                ToggleButton fastestCarBtn = findViewById(R.id.fastestToggleBtn2);
 
-                if (exploreButton.isChecked()) {
-                    stopTimerFlag = true;
-                    exploreButton.setChecked(false);
-                    robotStatusTextView.setText(R.string.image_rec_end);
-                    ControlFragment.timerHandler.removeCallbacks(ControlFragment.timerRunnableExplore);
-                } else if (fastestButton.isChecked()) {
-                    stopTimerFlag = true;
-                    fastestButton.setChecked(false);
-                    robotStatusTextView.setText(R.string.fastest_car_end);
-                    ControlFragment.timerHandler.removeCallbacks(ControlFragment.timerRunnableFastest);
+                if (imgRecBtn.isChecked()) {
+                    imgRecTimerFlag = true;
+                    imgRecBtn.setChecked(false);
+                    robotStatusText.setText(R.string.image_rec_end);
+                    ControlFragment.timerHandler.removeCallbacks(controlFragment.imgRecTimer);
+                } else if (fastestCarBtn.isChecked()) {
+                    imgRecTimerFlag = true;
+                    fastestCarBtn.setChecked(false);
+                    robotStatusText.setText(R.string.fastest_car_end);
+                    ControlFragment.timerHandler.removeCallbacks(controlFragment.fastestCarTimer);
                 }
             }
         }
@@ -362,7 +362,7 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
             if (resultCode == Activity.RESULT_OK) {
-                mBTDevice = data.getExtras().getParcelable("mBTDevice");
+                BluetoothDevice mBTDevice = data.getExtras().getParcelable("mBTDevice");
             }
         }
     }
@@ -401,10 +401,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
-        showLog("Entering onSaveInstanceState");
+        this.showLog("Entering onSaveInstanceState");
         super.onSaveInstanceState(outState);
 
         outState.putString(TAG, "onSaveInstanceState");
-        showLog("Exiting onSaveInstanceState");
+        this.showLog("Exiting onSaveInstanceState");
     }
 }

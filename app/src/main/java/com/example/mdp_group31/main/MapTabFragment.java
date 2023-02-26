@@ -40,6 +40,12 @@ public class MapTabFragment extends Fragment {
     static boolean dragStatus;
     static boolean changeObstacleStatus;
 
+    private MainActivity mainActivity;
+
+    public MapTabFragment(MainActivity main) {
+        this.mainActivity = main;
+    }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -52,7 +58,7 @@ public class MapTabFragment extends Fragment {
             Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.activity_map_config, container, false);
 
-        gridMap = MainActivity.getGridMap();
+        gridMap = this.mainActivity.getGridMap();
         final DirectionFragment directionFragment = new DirectionFragment();
 
         resetMapBtn = root.findViewById(R.id.resetBtn);
@@ -135,7 +141,7 @@ public class MapTabFragment extends Fragment {
                 editor.commit();
 
                 getObsPos = "OBS|" + getObsPos;
-                MainActivity.printMessage(getObsPos);
+                mainActivity.sendMessage(getObsPos);
             }
         });
 

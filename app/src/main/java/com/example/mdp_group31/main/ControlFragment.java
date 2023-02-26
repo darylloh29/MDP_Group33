@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,64 +12,59 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
-
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-
 import com.example.mdp_group31.MainActivity;
 import com.example.mdp_group31.R;
-
-import java.util.Arrays;
+import java.util.Locale;
 
 
 public class ControlFragment extends Fragment {
     private static final String TAG = "ControlFragment";
+    private final MainActivity mainActivity;
+    private long imgRecTime, fastestCarTime;
+    private ToggleButton imgRecBtn, fastestCarBtn;
+    private TextView imgRecText, fastestCarText, robotStatusText;
+    private GridMap gridMap;
+    private int[] curCoord;
+    private String direction;
 
-    SharedPreferences sharedPreferences;
+    public ControlFragment(MainActivity main) {
+        this.mainActivity = main;
+    }
 
-    // Control Button
-    ImageButton moveForwardImageBtn, turnRightImageBtn, moveBackImageBtn, turnLeftImageBtn;
-    ImageButton exploreResetButton, fastestResetButton;
-    private static long exploreTimer, fastestTimer;
-    public static ToggleButton exploreButton, fastestButton;
-    public static TextView exploreTimeTextView, fastestTimeTextView, robotStatusTextView;
-    private static GridMap gridMap;
-
-    // Timer
     public static Handler timerHandler = new Handler();
 
-    public static Runnable timerRunnableExplore = new Runnable() {
+    public Runnable imgRecTimer = new Runnable() {
         @Override
         public void run() {
-            long millisExplore = System.currentTimeMillis() - exploreTimer;
-            int secondsExplore = (int) (millisExplore / 1000);
-            int minutesExplore = secondsExplore / 60;
-            secondsExplore = secondsExplore % 60;
+            long msTime = System.currentTimeMillis() - imgRecTime;
+            int sTime = (int) (msTime / 1000);
+            int minuteTime = sTime / 60;
+            sTime = sTime % 60;
 
-            if (!MainActivity.stopTimerFlag) {
-                exploreTimeTextView.setText(String.format("%02d:%02d", minutesExplore,
-                        secondsExplore));
+            if (! mainActivity.imgRecTimerFlag) {
+                imgRecText.setText(String.format(Locale.US, "%02d:%02d", minuteTime, sTime));
                 timerHandler.postDelayed(this, 500);
             }
         }
     };
 
-    public static Runnable timerRunnableFastest = new Runnable() {
+    public Runnable fastestCarTimer = new Runnable() {
         @Override
         public void run() {
-            long millisFastest = System.currentTimeMillis() - fastestTimer;
-            int secondsFastest = (int) (millisFastest / 1000);
-            int minutesFastest = secondsFastest / 60;
-            secondsFastest = secondsFastest % 60;
+            long msTime = System.currentTimeMillis() - fastestCarTime;
+            int sTime = (int) (msTime / 1000);
+            int minuteTime = sTime / 60;
+            sTime = sTime % 60;
 
-            if (!MainActivity.stopWk9TimerFlag) {
-                fastestTimeTextView.setText(String.format("%02d:%02d", minutesFastest,
-                        secondsFastest));
+            if (!mainActivity.fastestCarTimerFlag) {
+                fastestCarText.setText(String.format(Locale.US,"%02d:%02d", minuteTime,
+                        sTime));
                 timerHandler.postDelayed(this, 500);
             }
         }
     };
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -84,226 +78,180 @@ public class ControlFragment extends Fragment {
         View root = inflater.inflate(R.layout.activity_control, container, false);
 
         // get shared preferences
-        sharedPreferences = getActivity().getSharedPreferences("Shared Preferences",
-                Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = requireActivity()
+                .getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
 
         // variable initialization
-        moveForwardImageBtn = MainActivity.getUpBtn();
-        turnRightImageBtn = MainActivity.getRightBtn();
-        moveBackImageBtn = MainActivity.getDownBtn();
-        turnLeftImageBtn = MainActivity.getLeftBtn();
-        exploreTimeTextView = root.findViewById(R.id.exploreTimeTextView2);
-        fastestTimeTextView = root.findViewById(R.id.fastestTimeTextView2);
-        exploreButton = root.findViewById(R.id.exploreToggleBtn2);
-        fastestButton = root.findViewById(R.id.fastestToggleBtn2);
-        exploreResetButton = root.findViewById(R.id.exploreResetImageBtn2);
-        fastestResetButton = root.findViewById(R.id.fastestResetImageBtn2);
-        robotStatusTextView = MainActivity.getRobotStatusTextView();
-        fastestTimer = 0;
-        exploreTimer = 0;
-
-        gridMap = MainActivity.getGridMap();
+        // Control Button
+        ImageButton forwardBtn = this.mainActivity.getUpBtn();
+        ImageButton rightBtn = this.mainActivity.getRightBtn();
+        ImageButton backBtn = this.mainActivity.getDownBtn();
+        ImageButton leftBtn = this.mainActivity.getLeftBtn();
+        ImageButton imgRecResetBtn = root.findViewById(R.id.exploreResetImageBtn2);
+        ImageButton fastestCarResetBtn = root.findViewById(R.id.fastestResetImageBtn2);
+        this.imgRecText = root.findViewById(R.id.exploreTimeTextView2);
+        this.fastestCarText = root.findViewById(R.id.fastestTimeTextView2);
+        this.imgRecBtn = root.findViewById(R.id.exploreToggleBtn2);
+        this.fastestCarBtn = root.findViewById(R.id.fastestToggleBtn2);
+        this.robotStatusText = this.mainActivity.getRobotStatusText();
+        this.fastestCarTime = 0;
+        this.imgRecTime = 0;
+        this.gridMap = this.mainActivity.getGridMap();
 
         // Button Listener
-        moveForwardImageBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (gridMap.getCanDrawRobot()) {
-                    int[] curCoord = gridMap.getCurCoord();
-                    String direction = gridMap.getRobotDirection();
-                    switch (direction) {
-                        case "up":
-                            gridMap.moveRobot(new int[]{curCoord[0], curCoord[1] + 1}, 0);
-                            break;
-                        case "left":
-                            gridMap.moveRobot(new int[]{curCoord[0] - 1, curCoord[1]}, 0);
-                            break;
-                        case "down":
-                            gridMap.moveRobot(new int[]{curCoord[0], curCoord[1] - 1}, 0);
-                            break;
-                        case "right":
-                            gridMap.moveRobot(new int[]{curCoord[0] + 1, curCoord[1]}, 0);
-                            break;
-                    }
-
-                    MainActivity.refreshLabel();
+        forwardBtn.setOnClickListener(view -> {
+            if (this.gridMap.getCanDrawRobot()) {
+                this.curCoord = this.gridMap.getCurCoord();
+                this.direction = this.gridMap.getRobotDirection();
+                switch (this.direction) {
+                    case "up":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0], this.curCoord[1] + 1}, 0);
+                        break;
+                    case "left":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] - 1, this.curCoord[1]}, 0);
+                        break;
+                    case "down":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0], this.curCoord[1] - 1}, 0);
+                        break;
+                    case "right":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] + 1, this.curCoord[1]}, 0);
+                        break;
                 }
-                else
-                    updateStatus("Please press 'STARTING POINT'");
+
+                this.mainActivity.refreshCoordinate();
+            }
+            else
+                this.showToast("Please place robot on map to begin");
+        });
+
+        rightBtn.setOnClickListener(view -> {
+            if (this.gridMap.getCanDrawRobot()) {
+                this.curCoord = this.gridMap.getCurCoord();
+                this.direction = this.gridMap.getRobotDirection();
+                switch (this.direction) {
+                    case "up":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] + 3, this.curCoord[1] + 2}, -90);
+                        break;
+                    case "left":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] - 2, this.curCoord[1] + 3}, -90);
+                        break;
+                    case "down":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] - 3, this.curCoord[1] - 2}, -90);
+                        break;
+                    case "right":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] + 2, this.curCoord[1] - 3}, -90);
+                        break;
+                }
+
+                this.mainActivity.refreshCoordinate();
+            }
+            else
+                this.showToast("Please place robot on map to begin");
+        });
+
+        backBtn.setOnClickListener(view -> {
+            if (this.gridMap.getCanDrawRobot()) {
+                this.curCoord = this.gridMap.getCurCoord();
+                this.direction = this.gridMap.getRobotDirection();
+                switch (this.direction) {
+                    case "up":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0], this.curCoord[1] - 1}, 0);
+                        break;
+                    case "left":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] + 1, this.curCoord[1]}, 0);
+                        break;
+                    case "down":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0], this.curCoord[1] + 1}, 0);
+                        break;
+                    case "right":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] - 1, this.curCoord[1]}, 0);
+                        break;
+                }
+                this.mainActivity.refreshCoordinate();
+            }
+            else {
+                this.showToast("Please place robot on map to begin");
             }
         });
 
-        turnRightImageBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (gridMap.getCanDrawRobot()) {
-                    int[] curCoord = gridMap.getCurCoord();
-                    String direction = gridMap.getRobotDirection();
-                    switch (direction) {
-                        case "up":
-                            gridMap.moveRobot(new int[]{curCoord[0] + 3, curCoord[1] + 2}, -90);
-                            break;
-                        case "left":
-                            gridMap.moveRobot(new int[]{curCoord[0] - 2, curCoord[1] + 3}, -90);
-                            break;
-                        case "down":
-                            gridMap.moveRobot(new int[]{curCoord[0] - 3, curCoord[1] - 2}, -90);
-                            break;
-                        case "right":
-                            gridMap.moveRobot(new int[]{curCoord[0] + 2, curCoord[1] - 3}, -90);
-                            break;
-                    }
-
-                    MainActivity.refreshLabel();
+        leftBtn.setOnClickListener(view -> {
+            if (this.gridMap.getCanDrawRobot()) {
+                this.curCoord = this.gridMap.getCurCoord();
+                this.direction = this.gridMap.getRobotDirection();
+                switch (this.direction) {
+                    case "up":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] - 2, this.curCoord[1] + 1}, 90);
+                        break;
+                    case "left":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] - 1, this.curCoord[1] - 2}, 90);
+                        break;
+                    case "down":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] + 2, this.curCoord[1] - 1}, 90);
+                        break;
+                    case "right":
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] + 1, this.curCoord[1] + 2}, 90);
+                        break;
                 }
-                else
-                    updateStatus("Please press 'STARTING POINT'");
+                this.mainActivity.refreshCoordinate();
+            }
+            else
+                this.showToast("Please place robot on map to begin");
+        });
+
+        imgRecBtn.setOnClickListener(v -> {
+            if (imgRecBtn.getText().equals("START")) {
+                this.showToast("Image Recognition Completed!!");
+                this.robotStatusText.setText(R.string.img_rec_stop);
+                timerHandler.removeCallbacks(this.imgRecTimer);
+            }
+            else if (imgRecBtn.getText().equals("STOP")) {
+                mainActivity.imgRecTimerFlag = false;
+                this.showToast("Image Recognition Started!!");
+                this.robotStatusText.setText(R.string.img_rec_start);
+                this.imgRecTime = System.currentTimeMillis();
+                timerHandler.postDelayed(imgRecTimer, 0);
             }
         });
 
-        moveBackImageBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (gridMap.getCanDrawRobot()) {
-                    int[] curCoord = gridMap.getCurCoord();
-                    String direction = gridMap.getRobotDirection();
-                    switch (direction) {
-                        case "up":
-                            gridMap.moveRobot(new int[]{curCoord[0], curCoord[1] - 1}, 0);
-                            break;
-                        case "left":
-                            gridMap.moveRobot(new int[]{curCoord[0] + 1, curCoord[1]}, 0);
-                            break;
-                        case "down":
-                            gridMap.moveRobot(new int[]{curCoord[0], curCoord[1] + 1}, 0);
-                            break;
-                        case "right":
-                            gridMap.moveRobot(new int[]{curCoord[0] - 1, curCoord[1]}, 0);
-                            break;
-                    }
-                    MainActivity.refreshLabel();
-                }
-                else {
-                    updateStatus("Please press 'STARTING POINT'");
-                }
+        fastestCarBtn.setOnClickListener(v -> {
+            if (fastestCarBtn.getText().equals("START")) {
+                this.showToast("Fastest Car Stopped!");
+                this.robotStatusText.setText(R.string.fastest_car_stop);
+                timerHandler.removeCallbacks(fastestCarTimer);
+            }
+            else if (fastestCarBtn.getText().equals("STOP")) {
+                this.showToast("Fastest Car started!");
+                this.mainActivity.sendMessage("STM|Start");  //TODO change this cmd
+                mainActivity.fastestCarTimerFlag = false;
+                this.robotStatusText.setText(R.string.fastest_car_start);
+                this.fastestCarTime = System.currentTimeMillis();
+                timerHandler.postDelayed(fastestCarTimer, 0);
             }
         });
 
-        turnLeftImageBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (gridMap.getCanDrawRobot()) {
-                    int[] curCoord = gridMap.getCurCoord();
-                    String direction = gridMap.getRobotDirection();
-                    switch (direction) {
-                        case "up":
-                            gridMap.moveRobot(new int[]{curCoord[0] - 2, curCoord[1] + 1}, 90);
-                            break;
-                        case "left":
-                            gridMap.moveRobot(new int[]{curCoord[0] - 1, curCoord[1] - 2}, 90);
-                            break;
-                        case "down":
-                            gridMap.moveRobot(new int[]{curCoord[0] + 2, curCoord[1] - 1}, 90);
-                            break;
-                        case "right":
-                            gridMap.moveRobot(new int[]{curCoord[0] + 1, curCoord[1] + 2}, 90);
-                            break;
-                    }
-                    MainActivity.refreshLabel();
-                }
-                else
-                    updateStatus("Please press 'STARTING POINT'");
-            }
+        imgRecResetBtn.setOnClickListener(v -> {
+            this.showToast("Resetting image recognition challenge timer...");
+            this.imgRecText.setText(R.string.timer_default_val);
+            this.robotStatusText.setText(R.string.robot_status_na);
+            if (this.imgRecBtn.isChecked())
+                this.imgRecBtn.toggle();
+            timerHandler.removeCallbacks(imgRecTimer);
         });
 
-        exploreButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showLog("Clicked exploreToggleBtn");
-                ToggleButton exploreToggleBtn = (ToggleButton) v;
-
-                if (exploreToggleBtn.getText().equals("WK8 START")) {
-                    showToast("Auto Movement/ImageRecog timer stop!");
-                    robotStatusTextView.setText("Auto Movement Stopped");
-                    timerHandler.removeCallbacks(timerRunnableExplore);
-                }
-                else if (exploreToggleBtn.getText().equals("STOP")) {
-                    String msg = gridMap.getAllObstacles();
-                    MainActivity.printMessage(msg);
-                    MainActivity.stopTimerFlag = false;
-                    showToast("Auto Movement/ImageRecog timer start!");
-                    robotStatusTextView.setText("Auto Movement Started");
-                    exploreTimer = System.currentTimeMillis();
-                    timerHandler.postDelayed(timerRunnableExplore, 0);
-                }
-                else {
-                    showToast("Else statement: " + exploreToggleBtn.getText());
-                }
-                showLog("Exiting exploreToggleBtn");
+        fastestCarResetBtn.setOnClickListener(view -> {
+            showToast("Resetting fastest car challenge timer...");
+            this.fastestCarText.setText(R.string.timer_default_val);
+            this.robotStatusText.setText(R.string.robot_status_na);
+            if (this.fastestCarBtn.isChecked()){
+                this.fastestCarBtn.toggle();
             }
-        });
-
-        fastestButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showLog("Clicked fastestToggleBtn");
-                ToggleButton fastestToggleBtn = (ToggleButton) v;
-                if (fastestToggleBtn.getText().equals("WK9 START")) {
-                    showToast("Fastest car timer stop!");
-                    robotStatusTextView.setText("Fastest Car Stopped");
-                    timerHandler.removeCallbacks(timerRunnableFastest);
-                }
-                else if (fastestToggleBtn.getText().equals("STOP")) {
-                    showToast("Fastest car timer start!");
-                    try {
-                        MainActivity.printMessage("STM|Start");
-                    } catch (Exception e) {
-                        showLog(e.getMessage());
-                    }
-                    MainActivity.stopWk9TimerFlag = false;
-                    robotStatusTextView.setText("Fastest Car Started");
-                    fastestTimer = System.currentTimeMillis();
-                    timerHandler.postDelayed(timerRunnableFastest, 0);
-                }
-                else
-                    showToast(fastestToggleBtn.getText().toString());
-                showLog("Exiting fastestToggleBtn");
-            }
-        });
-
-        exploreResetButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showLog("Clicked exploreResetImageBtn");
-                showToast("Resetting exploration time...");
-                exploreTimeTextView.setText("00:00");
-                robotStatusTextView.setText("Not Available");
-                if(exploreButton.isChecked())
-                    exploreButton.toggle();
-                timerHandler.removeCallbacks(timerRunnableExplore);
-                showLog("Exiting exploreResetImageBtn");
-            }
-        });
-
-        fastestResetButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                showLog("Clicjed fatestResetImgBtn");
-                showToast("Resetting Fastest Time...");
-                fastestTimeTextView.setText("00:00");
-                robotStatusTextView.setText("Fastest Car Finished");
-                if(fastestButton.isChecked()){
-                    fastestButton.toggle();
-                }
-                timerHandler.removeCallbacks(timerRunnableFastest);
-                showLog("Exiting fastestResetImgBtn");
-            }
+            timerHandler.removeCallbacks(fastestCarTimer);
         });
 
         return root;
     }
 
-    private static void showLog(String message) {
+    private void debugMessage(String message) {
         Log.d(TAG, message);
     }
 
@@ -314,11 +262,5 @@ public class ControlFragment extends Fragment {
     @Override
     public void onDestroy(){
         super.onDestroy();
-    }
-
-    private void updateStatus(String message) {
-        Toast toast = Toast.makeText(getContext(), message, Toast.LENGTH_SHORT);
-        toast.setGravity(Gravity.TOP,0, 0);
-        toast.show();
     }
 }
