@@ -111,7 +111,7 @@ public class MapTabFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 showLog("Clicked setStartPointToggleBtn");
-                if (setStartPointToggleBtn.getText().equals("STARTING POINT")) {
+                if (setStartPointToggleBtn.getText().equals("SET START POINT")) {
                     showToast("Cancelled selecting starting point");
                     gridMap.setCanDrawRobot(false);
                 }

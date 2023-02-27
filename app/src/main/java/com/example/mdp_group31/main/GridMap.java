@@ -323,39 +323,75 @@ public class GridMap extends View {
         int robotX = curCoord[0];
         int robotY = curCoord[1];
 
-        if (! (robotX == -1 || robotY == -1)) {
+        if (! (robotX == -1 && robotY == -1)) {
             op.inMutable = true;
             switch (this.getRobotDirection()) {
                 case "up":
-                    xCoord = cells[robotX][20 - robotY].startX;
-                    yCoord = cells[robotX][20 - robotY].startY;
-                    bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_up, op);
-                    mapscalable = Bitmap.createScaledBitmap(bm, 51,51, true);
-                    canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
+                    if (robotY < 2 || robotY > 20 || robotX < 1 || robotX > 19) {
+                        Toast.makeText(
+                                this.getContext(),
+                                "Error with drawing robot (out of bound)",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                        this.setCanDrawRobot(false);
+                    } else {
+                        xCoord = cells[robotX][20 - robotY].startX;
+                        yCoord = cells[robotX][20 - robotY].startY;
+                        bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_up, op);
+                        mapscalable = Bitmap.createScaledBitmap(bm, 51,51, true);
+                        canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
+                    }
                     break;
 
                 case "down":
-                    xCoord = cells[robotX - 1][20 - (robotY + 1)].startX;
-                    yCoord = cells[robotX - 1][20 - (robotY + 1)].startY;
-                    bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_down, op);
-                    mapscalable = Bitmap.createScaledBitmap(bm, 51,51, true);
-                    canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
-                    break;
+                    if (robotY < 1 ||robotY > 19 || robotX < 2 || robotX > 20) {
+                        Toast.makeText(
+                                this.getContext(),
+                                "Error with drawing robot (out of bound)",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                        this.setCanDrawRobot(false);
+                    } else {
+                        xCoord = cells[robotX - 1][20 - (robotY + 1)].startX;
+                        yCoord = cells[robotX - 1][20 - (robotY + 1)].startY;
+                        bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_down, op);
+                        mapscalable = Bitmap.createScaledBitmap(bm, 51,51, true);
+                        canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
 
+                    }
+                    break;
                 case "right":
-                    xCoord = cells[robotX - 1][20 - robotY].startX;
-                    yCoord = cells[robotX - 1][20 - robotY].startY;
-                    bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_right, op);
-                    mapscalable = Bitmap.createScaledBitmap(bm, 51,51, true);
-                    canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
+                    if (robotY < 2 || robotY > 20 || robotX < 2 || robotX > 20) {
+                        Toast.makeText(
+                                this.getContext(),
+                                "Error with drawing robot (out of bound)",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                        this.setCanDrawRobot(false);
+                    } else {
+                        xCoord = cells[robotX - 1][20 - robotY].startX;
+                        yCoord = cells[robotX - 1][20 - robotY].startY;
+                        bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_right, op);
+                        mapscalable = Bitmap.createScaledBitmap(bm, 51,51, true);
+                        canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
+                    }
                     break;
 
                 case "left":
-                    xCoord = cells[robotX][20 - (robotY - 1)].startX;
-                    yCoord = cells[robotX][20 - (robotY + 1)].startY;
-                    bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_left, op);
-                    mapscalable = Bitmap.createScaledBitmap(bm, 51,51, true);
-                    canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
+                    if (robotY < 1 || robotY > 19 ||robotX < 1 || robotX > 19) {
+                        Toast.makeText(
+                                this.getContext(),
+                                "Error with drawing robot (out of bound)",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                        this.setCanDrawRobot(false);
+                    } else {
+                        xCoord = cells[robotX][20 - (robotY - 1)].startX;
+                        yCoord = cells[robotX][20 - (robotY + 1)].startY;
+                        bm = BitmapFactory.decodeResource(getResources(),R.drawable.car_face_left, op);
+                        mapscalable = Bitmap.createScaledBitmap(bm, 51,51, true);
+                        canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
+                    }
                     break;
 
                 default:
@@ -583,8 +619,6 @@ public class GridMap extends View {
                             }
                         }
                     }
-                } else {
-                    canDrawRobot = true;
                 }
 
                 if (flag) {
@@ -925,7 +959,7 @@ public class GridMap extends View {
         boolean flag = false;
         System.out.print("Before");
         System.out.println(GridMap.robotBearing);
-        GridMap.robotBearing = GridMap.robotBearing + angle;
+        GridMap.robotBearing += angle;
         System.out.print("After");
         System.out.println(GridMap.robotBearing);
         double offset = GridMap.robotBearing % 360;
@@ -968,6 +1002,8 @@ public class GridMap extends View {
 
         if (flag) {
             this.setCurCoord(nextCoord[0], nextCoord[1], robotDirection);
+        } else {
+            GridMap.robotBearing -= angle;  //revert angle change
         }
         this.invalidate();
     }

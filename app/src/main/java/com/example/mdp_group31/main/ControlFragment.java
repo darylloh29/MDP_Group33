@@ -207,6 +207,7 @@ public class ControlFragment extends Fragment {
             else if (imgRecBtn.getText().equals("STOP")) {
                 mainActivity.imgRecTimerFlag = false;
                 this.showToast("Image Recognition Started!!");
+                this.mainActivity.sendMessage("STM|Start");
                 this.robotStatusText.setText(R.string.img_rec_start);
                 this.imgRecTime = System.currentTimeMillis();
                 timerHandler.postDelayed(imgRecTimer, 0);

@@ -228,19 +228,24 @@ public class MainActivity extends AppCompatActivity {
      */
     public void sendMessage(String message) {
         this.editor = this.sharedPreferences.edit();
+        message += "\n";
         if (BluetoothConnectionService.BluetoothConnectionStatus) {
             byte[] bytes = message.getBytes(Charset.defaultCharset());
+            // Send the size of bytes to be sent, followed by a newline character
+            //String sizeMessage = String.valueOf(bytes.length) + "\n";
+            //byte[] sizeBytes = sizeMessage.getBytes(Charset.defaultCharset());
+            //BluetoothConnectionService.write(sizeBytes);
             BluetoothConnectionService.write(bytes);
         }
-        this.nextLineOnChatMsg(message);
+        this.printMessage(message);
     }
 
     /**
      * Basically adds a new line after the message is sent, so that the next message will appear on new line
      * @param message Last message that was sent over via BT
      */
-    public void nextLineOnChatMsg(String message) {
-        this.btFragment.getMessageReceivedTextView().append(message + "\n");
+    public void printMessage(String message) {
+        this.btFragment.getMessageReceivedTextView().append(message);
     }
 
     /**
