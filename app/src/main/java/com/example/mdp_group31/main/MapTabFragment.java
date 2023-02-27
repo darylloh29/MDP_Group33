@@ -28,8 +28,8 @@ public class MapTabFragment extends Fragment {
     private static SharedPreferences.Editor editor;
 
     Button resetMapBtn, updateButton, saveMapObstacle, loadMapObstacle;
-    ImageButton directionChangeImageBtn, obstacleImageBtn;
-    ToggleButton setStartPointToggleBtn;
+    ImageButton directionChangeImageBtn;
+    ToggleButton setStartPointToggleBtn, obstacleImageBtn;
     GridMap gridMap;
 
     Switch dragSwitch;
@@ -112,17 +112,15 @@ public class MapTabFragment extends Fragment {
             public void onClick(View view) {
                 showLog("Clicked setStartPointToggleBtn");
                 if (setStartPointToggleBtn.getText().equals("SET START POINT")) {
-                    showToast("Cancelled selecting starting point");
                     gridMap.setCanDrawRobot(false);
+                    gridMap.setStartCoordStatus(false);
+                    gridMap.toggleCheckedBtn("setStartPointToggleBtn");
                 }
                 else if (setStartPointToggleBtn.getText().equals("CANCEL")) {
-                    showToast("Please select starting point");
                     gridMap.setStartCoordStatus(true);
                     gridMap.setCanDrawRobot(true);
                     gridMap.toggleCheckedBtn("setStartPointToggleBtn");
-                } else
-                    showToast("Please select manual mode");
-                showLog("Exiting setStartPointToggleBtn");
+                }
             }
         });
 
@@ -200,6 +198,8 @@ public class MapTabFragment extends Fragment {
                     gridMap.toggleCheckedBtn("obstacleImageBtn");
                 }
                 else {
+                    int numObstacles = gridMap.getObstacleCoord().size();
+                    showToast(numObstacles + " obstacles plotted");
                     gridMap.setSetObstacleStatus(false);
                 }
 

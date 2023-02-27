@@ -48,16 +48,18 @@
                         app:srcCompat="@mipmap/compass"
                         android:scaleType="centerCrop"/>
 
-                    <ImageButton
+                    <ToggleButton
                         android:id="@+id/addObstacleBtn"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
                         android:layout_marginStart="36dp"
                         android:layout_marginTop="15dp"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        android:background="@drawable/border_black_state"
-                        app:srcCompat="@mipmap/red_traffic_cone"
-                        android:scaleType="centerCrop"/>
+                        android:button="@null"
+                        android:textOff=""
+                        android:textOn=""
+                        android:background="@drawable/toggle_button_bg"
+                        android:scaleType="centerCrop"
+                        android:checked="false" />
                 </LinearLayout>
 
                 <Button

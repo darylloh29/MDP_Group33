@@ -100,8 +100,8 @@ public class GridMap extends View {
             return this.id;
         }
     }
-
-    SharedPreferences sharedPreferences;
+    private static final String TAG = "GridMap";
+    private SharedPreferences sharedPreferences;
     private final Paint blackPaint = new Paint();
     private final Paint whitePaint = new Paint();
     private final Paint greenPaint = new Paint();
@@ -114,17 +114,14 @@ public class GridMap extends View {
     private final Paint exploredColor = new Paint();
     private final Paint arrowColor = new Paint();
     private final Paint fastestPathColor = new Paint();
-    private static String robotDirection = "None";
+    private String robotDirection = "None";
     public static double robotBearing = 90;
-    private static int[] startCoord = new int[]{-1, -1};
-    private static int[] curCoord = new int[]{-1, -1};
-    private static ArrayList<int[]> obstacleCoord = new ArrayList<>();
-    private static boolean canDrawRobot = false;
-    private static boolean startCoordStatus = false;
-    private static boolean setObstacleStatus = false;
-    private static final boolean setExploredStatus = false;
-
-    private static final String TAG = "GridMap";
+    private int[] startCoord;
+    private int[] curCoord;
+    private ArrayList<int[]> obstacleCoord = new ArrayList<>();
+    private boolean canDrawRobot = false;
+    private boolean startCoordStatus = false;
+    private boolean setObstacleStatus = false;
     private static final int COL = 20;
     private static final int ROW = 20;
     private static float cellSize;
@@ -161,6 +158,9 @@ public class GridMap extends View {
         this.exploredColor.setColor(getResources().getColor(R.color.exploredColor2));
         this.arrowColor.setColor(Color.BLACK);
         this.fastestPathColor.setColor(Color.MAGENTA);
+        this.startCoord = new int[]{-1, -1};
+        this.curCoord = new int[]{-1, -1};
+
         Paint newpaint = new Paint();
         newpaint.setColor(Color.TRANSPARENT);
         // get shared preferences
@@ -309,11 +309,11 @@ public class GridMap extends View {
     }
 
     public boolean getCanDrawRobot() {
-        return canDrawRobot;
+        return this.canDrawRobot;
     }
 
     public void setCanDrawRobot(boolean canDrawRobot) {
-        GridMap.canDrawRobot = canDrawRobot;
+        this.canDrawRobot = canDrawRobot;
     }
 
     private void drawRobot(Canvas canvas, int[] curCoord) {
@@ -486,6 +486,7 @@ public class GridMap extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        Logd("What is this? " + setObstacleStatus);
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             this.initialColumn = (int) (event.getX() / cellSize);
             this.initialRow = this.convertRow((int) (event.getY() / cellSize));
@@ -643,6 +644,7 @@ public class GridMap extends View {
                 this.invalidate();
                 return true;
             }
+            boolean setExploredStatus = false;
             if (setExploredStatus) {
                 cells[initialColumn][20 - initialRow].setType("explored");
                 this.invalidate();
@@ -665,8 +667,8 @@ public class GridMap extends View {
         switch (direction) {
             case "up":
                 if (col > 0 && col < 20 && row > 1 && row <= 20) {
-                    GridMap.startCoord[0] = col;
-                    GridMap.startCoord[1] = row;
+                    this.startCoord[0] = col;
+                    this.startCoord[1] = row;
                 } else {
                     return;
                 }
@@ -674,8 +676,8 @@ public class GridMap extends View {
 
             case "left":
                 if (col > 0 && col < 20 && row >= 1 && row < 20) {
-                    GridMap.startCoord[0] = col;
-                    GridMap.startCoord[1] = row;
+                    this.startCoord[0] = col;
+                    this.startCoord[1] = row;
                 } else {
                     return;
                 }
@@ -683,8 +685,8 @@ public class GridMap extends View {
 
             case "right":
                 if (col > 1 && col <= 20 && row > 1 && row <= 20) {
-                    GridMap.startCoord[0] = col;
-                    GridMap.startCoord[1] = row;
+                    this.startCoord[0] = col;
+                    this.startCoord[1] = row;
                 } else {
                     return;
                 }
@@ -692,8 +694,8 @@ public class GridMap extends View {
 
             case "down":
                 if (col > 1 && col <= 20 && row > 0 && row < 20) {
-                    GridMap.startCoord[0] = col;
-                    GridMap.startCoord[1] = row;
+                    this.startCoord[0] = col;
+                    this.startCoord[1] = row;
                 } else {
                     return;
                 }
@@ -716,8 +718,8 @@ public class GridMap extends View {
             return;
         }
 
-        GridMap.curCoord[0] = col;
-        GridMap.curCoord[1] = row;
+        this.curCoord[0] = col;
+        this.curCoord[1] = row;
         this.setRobotDirection(direction);
         this.updateRobotAxis(col, row, direction);
         this.updateCells("explored", col, row);
@@ -754,7 +756,7 @@ public class GridMap extends View {
      * @return The current coordinate of the robot
      */
     public int[] getCurCoord() {
-        return GridMap.curCoord;
+        return this.curCoord;
     }
 
     private int convertRow(int row) {
@@ -769,7 +771,7 @@ public class GridMap extends View {
         this.sharedPreferences = this.getContext().getSharedPreferences("Shared Preferences",
                 Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = this.sharedPreferences.edit();
-        GridMap.robotDirection = direction;
+        this.robotDirection = direction;
         editor.putString("direction", direction);
         editor.apply();
         this.invalidate();
@@ -810,8 +812,8 @@ public class GridMap extends View {
      * Returns the list of obstacles
      * @return The list of obstacles
      */
-    private ArrayList<int[]> getObstacleCoord() {
-        return GridMap.obstacleCoord;
+    public ArrayList<int[]> getObstacleCoord() {
+        return this.obstacleCoord;
     }
 
     /**
@@ -819,7 +821,7 @@ public class GridMap extends View {
      * @param newObstacleCoord The new obstacle to be added. Format: int[]{x, y, ID}
      */
     private void addObstacleCoord(int[] newObstacleCoord) {
-        GridMap.obstacleCoord.add(newObstacleCoord);
+        this.obstacleCoord.add(newObstacleCoord);
     }
 
     private static void Logd(String message) {
@@ -907,7 +909,7 @@ public class GridMap extends View {
     public void toggleCheckedBtn(String buttonName) {
         ToggleButton setStartPointToggleBtn = ((Activity)this.getContext())
                 .findViewById(R.id.startpointToggleBtn);
-        ImageButton obstacleImageBtn = ((Activity)this.getContext())
+        ToggleButton obstacleImageBtn = ((Activity)this.getContext())
                 .findViewById(R.id.addObstacleBtn);
 
         if (!buttonName.equals("setStartPointToggleBtn"))
@@ -916,8 +918,10 @@ public class GridMap extends View {
                 setStartPointToggleBtn.toggle();
             }
         if (!buttonName.equals("obstacleImageBtn"))
-            if (obstacleImageBtn.isEnabled())
+            if (obstacleImageBtn.isChecked()) {
                 this.setSetObstacleStatus(false);
+                obstacleImageBtn.toggle();
+            }
     }
 
 
