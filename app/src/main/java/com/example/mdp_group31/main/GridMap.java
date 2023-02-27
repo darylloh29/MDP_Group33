@@ -486,7 +486,6 @@ public class GridMap extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        Logd("What is this? " + setObstacleStatus);
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             this.initialColumn = (int) (event.getX() / cellSize);
             this.initialRow = this.convertRow((int) (event.getY() / cellSize));
