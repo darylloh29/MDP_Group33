@@ -643,12 +643,6 @@ public class GridMap extends View {
                 this.invalidate();
                 return true;
             }
-            boolean setExploredStatus = false;
-            if (setExploredStatus) {
-                cells[initialColumn][20 - initialRow].setType("explored");
-                this.invalidate();
-                return true;
-            }
         }
         return false;
     }
@@ -920,14 +914,14 @@ public class GridMap extends View {
             if (obstacleImageBtn.isChecked()) {
                 this.setSetObstacleStatus(false);
                 obstacleImageBtn.toggle();
-            }
+            }        
     }
 
 
     /**
      * Resets the map
      */
-    public void resetMap() {
+    public void resetMap(boolean hardReset) {
         TextView robotStatusTextView =  ((Activity)this.getContext())
                 .findViewById(R.id.robotStatus);
         this.updateRobotAxis(0, 0, "None");
@@ -939,8 +933,8 @@ public class GridMap extends View {
         this.setRobotDirection("None");
         this.setCanDrawRobot(false);
         GridMap.robotBearing = 90;
-        obstacleCoord = new ArrayList<>();
-        mapDrawn = false;
+        this.obstacleCoord = new ArrayList<>();
+        mapDrawn = !hardReset;
 
         for (int i = 0; i < 20; i++) {
             for (int j = 0; j < 20; j++) {
@@ -957,19 +951,11 @@ public class GridMap extends View {
      * @param angle The angle the robot is turning
      */
     public void moveRobot(int[] nextCoord, double angle) {
-        int[] curCoord = this.getCurCoord();    // current coordinate of the robot
         String robotDirection = this.getRobotDirection();   // current direction of the robot
         boolean flag = false;
-        System.out.print("Before");
-        System.out.println(GridMap.robotBearing);
         GridMap.robotBearing += angle;
-        System.out.print("After");
-        System.out.println(GridMap.robotBearing);
         double offset = GridMap.robotBearing % 360;
-        System.out.print("Offset");
-        System.out.println(offset);
         offset = this.handleAngle(offset);
-        System.out.println(offset);
         // facing N
         if (offset > 45 && offset <= 135) {
             if (nextCoord[1] <= 20 && nextCoord[1] > 1 && nextCoord[0] >= 1 && nextCoord[0] < 20
@@ -1004,18 +990,101 @@ public class GridMap extends View {
         }
 
         if (flag) {
-            this.setCurCoord(nextCoord[0], nextCoord[1], robotDirection);
+            this.extrapolateRobot(nextCoord, robotDirection);
         } else {
             GridMap.robotBearing -= angle;  //revert angle change
         }
         this.invalidate();
     }
 
+    /**
+     * Converts negative angles into positive angles
+     * @param angle Angle to be converted
+     * @return Non-negative equivalent of the angle passed in.
+     */
     public double handleAngle(double angle) {
         while (angle < 0) {
             angle += 360;
         }
         return angle;
+    }
+
+    /**
+     * Plots the robot in-between path on the UI level.
+     * Example, if current coordinates is (1,2) and received coordinate is (1,10), colour all 2x2 cells
+     * from (1,3) to (1,10) as explored.
+     * Note that the UI robot will be slower than the actual robot on the arena.
+     * @param nextCoord The next coordinate the robot will be in.
+     */
+    public void extrapolateRobot(int[] nextCoord, String robotDirection) {
+        int[] curCoord = this.getCurCoord();
+        Logd(robotDirection + "is the robot direction");
+        // same x-coord
+        if (curCoord[0] == nextCoord[0]) {
+            switch (robotDirection) {
+                case "up":
+                    if (nextCoord[1] > curCoord[1]) {
+                        for (int i = curCoord[1]; i <= nextCoord[1]; i ++) {
+                            this.updateCells("explored", curCoord[0], i);
+                            this.updateCells("explored", curCoord[0] + 1, i);
+                        }
+                    } else {
+                        for (int i = nextCoord[1]; i <= curCoord[1]; i ++) {
+                            this.updateCells("explored", curCoord[0], i);
+                            this.updateCells("explored", curCoord[0] + 1, i);
+                        }
+                    }
+                    break;
+
+                case "down":
+                    if (nextCoord[1] > curCoord[1]) {
+                        for (int i = curCoord[1]; i <= nextCoord[1]; i ++) {
+                            this.updateCells("explored", curCoord[0], i);
+                            this.updateCells("explored", curCoord[0] - 1, i);
+                        }
+                    } else {
+                        for (int i = nextCoord[1]; i <= curCoord[1]; i ++) {
+                            this.updateCells("explored", curCoord[0], i);
+                            this.updateCells("explored", curCoord[0] - 1, i);
+
+                        }
+                    }
+                    break;
+            }
+        }
+        // same y-coord
+        if (curCoord[1] == nextCoord[1]) {
+            switch (robotDirection) {
+                case "left":
+                    if (nextCoord[0] > curCoord[0]) {
+                        for (int i = curCoord[0]; i <= nextCoord[0]; i ++) {
+                            this.updateCells("explored", i, curCoord[1]);
+                            this.updateCells("explored", i, curCoord[1] + 1);
+                        }
+                    } else {
+                        for (int i = nextCoord[0]; i <= curCoord[0]; i ++) {
+                            this.updateCells("explored", i, curCoord[1]);
+                            this.updateCells("explored", i, curCoord[1] + 1);
+                        }
+                    }
+                    break;
+
+                case "right":
+                    if (nextCoord[0] > curCoord[0]) {
+                        for (int i = curCoord[0]; i <= nextCoord[0]; i ++) {
+                            this.updateCells("explored", i, curCoord[1]);
+                            this.updateCells("explored", i, curCoord[1] - 1);
+                        }
+                    } else {
+                        for (int i = nextCoord[0]; i <= curCoord[0]; i ++) {
+                            this.updateCells("explored", i, curCoord[1]);
+                            this.updateCells("explored", i, curCoord[1] - 1);
+                        }
+                    }
+                    break;
+            }
+        }
+        this.setCurCoord(nextCoord[0], nextCoord[1], robotDirection);
     }
 
     /**
@@ -1110,10 +1179,6 @@ public class GridMap extends View {
             getView().draw(canvas);
         }
 
-    }
-
-    // week 8 req to update robot pos when alg sends updates
-    public void performAlgoCommand(int x, int y, String direction) {
     }
 
     /**

@@ -328,6 +328,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra("receivedMessage");
+            System.out.println("debug" + message);
             if (message.contains("IMG")) {
                 String[] cmd = message.split("-");
                 gridMap.updateImageID(cmd[1], cmd[2]);

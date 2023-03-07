@@ -77,7 +77,7 @@ public class MapTabFragment extends Fragment {
             public void onClick(View view) {
                 showLog("Clicked resetMapBtn");
                 showToast("Reseting map...");
-                gridMap.resetMap();
+                gridMap.resetMap(true);
             }
         });
 
@@ -137,9 +137,6 @@ public class MapTabFragment extends Fragment {
                 getObsPos = gridMap.getAllObstacles();
                 editor.putString("maps",getObsPos);
                 editor.commit();
-
-                getObsPos = "OBS|" + getObsPos;
-                mainActivity.sendMessage(getObsPos);
             }
         });
 
@@ -150,6 +147,7 @@ public class MapTabFragment extends Fragment {
                 String obsPos = mapPref.getString("maps","");
                 if(! obsPos.equals("")) {
                     String[] obstaclePosition = obsPos.split("\\|");
+                    gridMap.resetMap(false);
                     for (String s : obstaclePosition) {
                         String[] coords = s.split(",");
                         coords[3] = "OB" + coords[3];
