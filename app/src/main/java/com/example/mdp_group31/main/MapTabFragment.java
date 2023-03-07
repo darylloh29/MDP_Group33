@@ -1,5 +1,6 @@
 package com.example.mdp_group31.main;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -27,7 +28,7 @@ public class MapTabFragment extends Fragment {
     SharedPreferences mapPref;
     private static SharedPreferences.Editor editor;
 
-    Button resetMapBtn, updateButton, saveMapObstacle, loadMapObstacle;
+    Button resetMapBtn, saveMapObstacle, loadMapObstacle;
     ImageButton directionChangeImageBtn;
     ToggleButton setStartPointToggleBtn, obstacleImageBtn;
     GridMap gridMap;
@@ -60,12 +61,13 @@ public class MapTabFragment extends Fragment {
 
         gridMap = this.mainActivity.getGridMap();
         final DirectionFragment directionFragment = new DirectionFragment();
+        final SaveMapFragment saveMapFragment = new SaveMapFragment();
+        final LoadMapFragment loadMapFragment = new LoadMapFragment();
 
         resetMapBtn = root.findViewById(R.id.resetBtn);
         setStartPointToggleBtn = root.findViewById(R.id.startpointToggleBtn);
         directionChangeImageBtn = root.findViewById(R.id.changeDirectionBtn);
         obstacleImageBtn = root.findViewById(R.id.addObstacleBtn);
-        updateButton = root.findViewById(R.id.updateMapBtn);
         saveMapObstacle = root.findViewById(R.id.saveBtn);
         loadMapObstacle = root.findViewById(R.id.loadBtn);
         dragSwitch = root.findViewById(R.id.dragSwitch);
@@ -89,6 +91,12 @@ public class MapTabFragment extends Fragment {
                 dragStatus = isChecked;
                 if (dragStatus) {
                     gridMap.setSetObstacleStatus(false);
+                    if (setStartPointToggleBtn.isChecked()) {
+                        setStartPointToggleBtn.toggle();
+                    }
+                    if (obstacleImageBtn.isChecked()) {
+                        obstacleImageBtn.toggle();
+                    }
                     changeObstacleSwitch.setChecked(false);
                 }
             }
@@ -102,6 +110,12 @@ public class MapTabFragment extends Fragment {
                 changeObstacleStatus = isChecked;
                 if (changeObstacleStatus) {
                     gridMap.setSetObstacleStatus(false);
+                    if (setStartPointToggleBtn.isChecked()) {
+                        setStartPointToggleBtn.toggle();
+                    }
+                    if (obstacleImageBtn.isChecked()) {
+                        obstacleImageBtn.toggle();
+                    }
                     dragSwitch.setChecked(false);
                 }
             }
@@ -121,59 +135,27 @@ public class MapTabFragment extends Fragment {
                     gridMap.setCanDrawRobot(true);
                     gridMap.toggleCheckedBtn("setStartPointToggleBtn");
                 }
+                changeObstacleSwitch.setChecked(false);
+                dragSwitch.setChecked(false);
             }
         });
 
         saveMapObstacle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String getObsPos = "";
-                mapPref = getContext().getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
-                editor = mapPref.edit();
-                if(!mapPref.getString("maps", "").equals("")){
-                    editor.putString("maps", "");
-                    editor.commit();
-                }
-                getObsPos = gridMap.getAllObstacles();
-                editor.putString("maps",getObsPos);
-                editor.commit();
+                saveMapFragment.show(getActivity().getFragmentManager(),
+                        "SaveMapFragment");
             }
         });
 
         loadMapObstacle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mapPref = getContext().getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
-                String obsPos = mapPref.getString("maps","");
-                if(! obsPos.equals("")) {
-                    String[] obstaclePosition = obsPos.split("\\|");
-                    gridMap.resetMap(false);
-                    for (String s : obstaclePosition) {
-                        String[] coords = s.split(",");
-                        coords[3] = "OB" + coords[3];
-                        gridMap.setObstacleCoord(Integer.parseInt(coords[0]), Integer.parseInt(coords[1]), coords[3]);
-                        String direction;
-                        switch (coords[2]) {
-                            case "E":
-                                direction = "East";
-                                break;
-                            case "S":
-                                direction = "South";
-                                break;
-                            case "W":
-                                direction = "West";
-                                break;
-                            default:
-                                direction = "North";
-                        }
-                        GridMap.IMAGE_BEARING[Integer.parseInt(coords[1]) - 1][Integer.parseInt(coords[0]) - 1] = direction;
-                    }
-                    gridMap.invalidate();
-                    showLog("Exiting Load Button");
-                }
+                gridMap.resetMap(true);
+                loadMapFragment.show(getActivity().getFragmentManager(),
+                        "LoadMapFragment");
             }
         });
-
 
         directionChangeImageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -205,15 +187,6 @@ public class MapTabFragment extends Fragment {
                 dragSwitch.setChecked(false);
                 showLog("obstacle status = " + gridMap.getSetObstacleStatus());
                 showLog("Exiting obstacleImageBtn");
-            }
-        });
-
-        updateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showLog("Clicked updateButton");
-                gridMap.invalidate();
-                showLog("Exiting updateButton");
             }
         });
         return root;
