@@ -18,23 +18,48 @@ import com.example.mdp_group31.MainActivity;
 import com.example.mdp_group31.R;
 import java.util.Locale;
 
+/**
+ * ControlFragment is a Fragment class that displays the control buttons and timers for the robot in the
+ * MainActivity.
 
+ * It contains two timers for image recognition and fastest car simulation, and button listeners
+ * to control the robot's movement.
+ */
 public class ControlFragment extends Fragment {
+    /**
+     * A string constant used for logging purposes.
+     */
     private static final String TAG = "ControlFragment";
+    /**
+     * The MainActivity instance that contains this fragment.
+     */
     private final MainActivity mainActivity;
+
     private long imgRecTime, fastestCarTime;
+    private SharedPreferences sharedPreferences;
     private ToggleButton imgRecBtn, fastestCarBtn;
     private TextView imgRecText, fastestCarText, robotStatusText;
     private GridMap gridMap;
     private int[] curCoord;
     private String direction;
 
+    /**
+     * Creates an instance of ControlFragment with the specified MainActivity instance.
+     *
+     * @param main the MainActivity instance that contains this fragment
+     */
     public ControlFragment(MainActivity main) {
         this.mainActivity = main;
     }
 
+    /**
+     * The Handler used for timing the image recognition timer and fastest car timer.
+     */
     public static Handler timerHandler = new Handler();
 
+    /**
+     * The Runnable for the image recognition timer.
+     */
     public Runnable imgRecTimer = new Runnable() {
         @Override
         public void run() {
@@ -50,6 +75,9 @@ public class ControlFragment extends Fragment {
         }
     };
 
+    /**
+     * The Runnable for the fastest car timer.
+     */
     public Runnable fastestCarTimer = new Runnable() {
         @Override
         public void run() {
@@ -66,11 +94,24 @@ public class ControlFragment extends Fragment {
         }
     };
 
+    /**
+     * Initializes the fragment.
+     *
+     * @param savedInstanceState the saved instance state
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
+    /**
+     * Creates and returns the view hierarchy associated with the fragment.
+     *
+     * @param inflater           the LayoutInflater object that can be used to inflate any views in the fragment
+     * @param container          the parent view that the fragment's UI should be attached to
+     * @param savedInstanceState the saved instance state
+     * @return the View for the fragment's UI, or null
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -78,11 +119,10 @@ public class ControlFragment extends Fragment {
         View root = inflater.inflate(R.layout.activity_control, container, false);
 
         // get shared preferences
-        SharedPreferences sharedPreferences = requireActivity()
+        this.sharedPreferences = requireActivity()
                 .getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
 
-        // variable initialization
-        // Control Button
+        // initialize all buttons and text views
         ImageButton forwardBtn = this.mainActivity.getUpBtn();
         ImageButton rightBtn = this.mainActivity.getRightBtn();
         ImageButton backBtn = this.mainActivity.getDownBtn();
@@ -94,15 +134,21 @@ public class ControlFragment extends Fragment {
         this.imgRecBtn = root.findViewById(R.id.exploreToggleBtn2);
         this.fastestCarBtn = root.findViewById(R.id.fastestToggleBtn2);
         this.robotStatusText = this.mainActivity.getRobotStatusText();
+
+        // default time is 0
         this.fastestCarTime = 0;
         this.imgRecTime = 0;
+
+        // need to get the gridMap to call the private methods
         this.gridMap = this.mainActivity.getGridMap();
 
-        // Button Listener
+        // button listeners. Runs when the buttons are pressed
         forwardBtn.setOnClickListener(view -> {
+            // only reacts when robot is placed on gridmap
             if (this.gridMap.getCanDrawRobot()) {
                 this.curCoord = this.gridMap.getCurCoord();
                 this.direction = this.gridMap.getRobotDirection();
+                // handles translation based on existing direction
                 switch (this.direction) {
                     case "up":
                         this.gridMap.moveRobot(new int[]{this.curCoord[0], this.curCoord[1] + 1}, 0);
@@ -117,13 +163,13 @@ public class ControlFragment extends Fragment {
                         this.gridMap.moveRobot(new int[]{this.curCoord[0] + 1, this.curCoord[1]}, 0);
                         break;
                 }
-
+                // refreshes the UI displayed coordinate of robot
                 this.mainActivity.refreshCoordinate();
             }
             else
                 this.showToast("Please place robot on map to begin");
         });
-
+        
         rightBtn.setOnClickListener(view -> {
             if (this.gridMap.getCanDrawRobot()) {
                 this.curCoord = this.gridMap.getCurCoord();
@@ -198,14 +244,16 @@ public class ControlFragment extends Fragment {
                 this.showToast("Please place robot on map to begin");
         });
 
-        imgRecBtn.setOnClickListener(v -> {
-            if (imgRecBtn.getText().equals("START")) {
+        this.imgRecBtn.setOnClickListener(v -> {
+            // changed from STOP to START (i.e. done with challenge)
+            if (this.imgRecBtn.getText().equals("START")) {
                 this.showToast("Image Recognition Completed!!");
                 this.robotStatusText.setText(R.string.img_rec_stop);
                 timerHandler.removeCallbacks(this.imgRecTimer);
             }
-            else if (imgRecBtn.getText().equals("STOP")) {
-                mainActivity.imgRecTimerFlag = false;
+            // changed from START to STOP (i.e. started challenge)
+            else if (this.imgRecBtn.getText().equals("STOP")) {
+                this.mainActivity.imgRecTimerFlag = false;
                 this.showToast("Image Recognition Started!!");
                 String getObsPos = this.gridMap.getAllObstacles();
                 getObsPos = "OBS|" + getObsPos;
@@ -216,16 +264,18 @@ public class ControlFragment extends Fragment {
             }
         });
 
-        fastestCarBtn.setOnClickListener(v -> {
-            if (fastestCarBtn.getText().equals("START")) {
+        this.fastestCarBtn.setOnClickListener(v -> {
+            // changed from STOP to START (i.e., challenge completed)
+            if (this.fastestCarBtn.getText().equals("START")) {
                 this.showToast("Fastest Car Stopped!");
                 this.robotStatusText.setText(R.string.fastest_car_stop);
                 timerHandler.removeCallbacks(fastestCarTimer);
             }
+            // changed from START to STOP (i.e., challenge started)
             else if (fastestCarBtn.getText().equals("STOP")) {
                 this.showToast("Fastest Car started!");
-                this.mainActivity.sendMessage("STM|Start");  //TODO change this cmd
-                mainActivity.fastestCarTimerFlag = false;
+                this.mainActivity.sendMessage("STM|Start");
+                this.mainActivity.fastestCarTimerFlag = false;
                 this.robotStatusText.setText(R.string.fastest_car_start);
                 this.fastestCarTime = System.currentTimeMillis();
                 timerHandler.postDelayed(fastestCarTimer, 0);
@@ -242,7 +292,7 @@ public class ControlFragment extends Fragment {
         });
 
         fastestCarResetBtn.setOnClickListener(view -> {
-            showToast("Resetting fastest car challenge timer...");
+            this.showToast("Resetting fastest car challenge timer...");
             this.fastestCarText.setText(R.string.timer_default_val);
             this.robotStatusText.setText(R.string.robot_status_na);
             if (this.fastestCarBtn.isChecked()){
@@ -254,10 +304,18 @@ public class ControlFragment extends Fragment {
         return root;
     }
 
+    /**
+     * Method to display debug message
+     * @param message The custom message shown in debugging
+     */
     private void debugMessage(String message) {
         Log.d(TAG, message);
     }
 
+    /**
+     * Displays a toast with message on the UI
+     * @param message The displayed message
+     */
     private void showToast(String message) {
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
