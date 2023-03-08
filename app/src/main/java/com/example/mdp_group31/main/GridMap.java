@@ -938,9 +938,9 @@ public class GridMap extends View {
 
         for (int i = 0; i < 20; i++) {
             for (int j = 0; j < 20; j++) {
-                OBSTACLE_LIST[i][j] = "";
-                IMAGE_LIST[i][j] = "";
-                IMAGE_BEARING[i][j] = "";
+                this.setObstacleID("", i, j);
+                this.setImageID("", i, j);
+                this.setImageBearing("", i, j);
             }
         }
         this.invalidate();
