@@ -13,7 +13,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.util.AttributeSet;
-import android.util.Base64;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.MotionEvent;
@@ -22,7 +21,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,7 +28,6 @@ import android.widget.ToggleButton;
 
 import androidx.annotation.Nullable;
 
-import com.example.mdp_group31.MainActivity;
 import com.example.mdp_group31.R;
 
 import java.util.ArrayList;
@@ -552,7 +549,7 @@ public class GridMap extends View {
                             String newBearing = mBearingSpinner.getSelectedItem().toString();
 
                             removeObstacle(oldID, initialColumn, initialRow);
-                            setObstacleCoord(tCol, tRow, newID);
+                            addObstacleCoord(tCol, tRow, newID);
                             setObstacleID(newID, tCol, tRow);
                             setImageBearing(newBearing, tCol, tRow);
 
@@ -638,7 +635,7 @@ public class GridMap extends View {
                 if (initialRow <= 20 && initialColumn <= 20) {
                     OBSTACLE_LIST[initialRow - 1][initialColumn - 1] = "OB0";
                     IMAGE_BEARING[initialRow - 1][initialColumn - 1] = "North";
-                    this.setObstacleCoord(initialColumn, initialRow, "OB0");
+                    this.addObstacleCoord(initialColumn, initialRow, "OB0");
                 }
                 this.invalidate();
                 return true;
@@ -793,10 +790,10 @@ public class GridMap extends View {
      * @param row The y-coord of the obstacle
      * @param obstacleID The ID of the obstacle
      */
-    public void setObstacleCoord(int col, int row, String obstacleID) {
+    public void addObstacleCoord(int col, int row, String obstacleID) {
         int parsedID = Integer.parseInt(obstacleID.substring(2));
         int[] obstacleCoord = new int[]{col, row, parsedID};
-        this.addObstacleCoord(obstacleCoord);
+        this.obstacleCoord.add(obstacleCoord);
         this.setObstacleID(obstacleID, col, row);
         this.updateCells("obstacle", col, row);
     }
@@ -809,13 +806,6 @@ public class GridMap extends View {
         return this.obstacleCoord;
     }
 
-    /**
-     * Adds an obstacle into the obstacle list
-     * @param newObstacleCoord The new obstacle to be added. Format: int[]{x, y, ID}
-     */
-    private void addObstacleCoord(int[] newObstacleCoord) {
-        this.obstacleCoord.add(newObstacleCoord);
-    }
 
     private static void Logd(String message) {
         Log.d(TAG, message);
@@ -864,7 +854,7 @@ public class GridMap extends View {
                 // Only execute if nothing is present at drag location
                 if (this.getObstacleID(endColumn, endRow).equals("")) {
                     this.removeObstacle(obstacleID, this.initialColumn, this.initialRow);
-                    this.setObstacleCoord(endColumn, endRow, obstacleID);
+                    this.addObstacleCoord(endColumn, endRow, obstacleID);
                     this.setImageBearing(imageBearing, endColumn, endRow);
                 }
             } else {

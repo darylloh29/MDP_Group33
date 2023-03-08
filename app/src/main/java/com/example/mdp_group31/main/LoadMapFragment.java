@@ -12,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -70,7 +69,7 @@ public class LoadMapFragment extends DialogFragment {
                     for (String s : obstaclePosition) {
                         String[] coords = s.split(",");
                         coords[3] = "OB" + coords[3];
-                        ((MainActivity)getActivity()).getGridMap().setObstacleCoord(Integer.parseInt(coords[0]), Integer.parseInt(coords[1]), coords[3]);
+                        ((MainActivity)getActivity()).getGridMap().addObstacleCoord(Integer.parseInt(coords[0]), Integer.parseInt(coords[1]), coords[3]);
                         String direction;
                         switch (coords[2]) {
                             case "E":

@@ -169,7 +169,7 @@ public class ControlFragment extends Fragment {
             else
                 this.showToast("Please place robot on map to begin");
         });
-        
+
         rightBtn.setOnClickListener(view -> {
             if (this.gridMap.getCanDrawRobot()) {
                 this.curCoord = this.gridMap.getCurCoord();
