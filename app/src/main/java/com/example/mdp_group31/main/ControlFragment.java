@@ -130,16 +130,16 @@ public class ControlFragment extends Fragment {
                 this.direction = this.gridMap.getRobotDirection();
                 switch (this.direction) {
                     case "up":
-                        this.gridMap.moveRobot(new int[]{this.curCoord[0] + 3, this.curCoord[1] + 2}, -90);
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] + 4, this.curCoord[1] + 2}, -90);
                         break;
                     case "left":
-                        this.gridMap.moveRobot(new int[]{this.curCoord[0] - 2, this.curCoord[1] + 3}, -90);
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] - 2, this.curCoord[1] + 4}, -90);
                         break;
                     case "down":
-                        this.gridMap.moveRobot(new int[]{this.curCoord[0] - 3, this.curCoord[1] - 2}, -90);
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] - 4, this.curCoord[1] - 2}, -90);
                         break;
                     case "right":
-                        this.gridMap.moveRobot(new int[]{this.curCoord[0] + 2, this.curCoord[1] - 3}, -90);
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] + 2, this.curCoord[1] - 4}, -90);
                         break;
                 }
 
@@ -180,16 +180,16 @@ public class ControlFragment extends Fragment {
                 this.direction = this.gridMap.getRobotDirection();
                 switch (this.direction) {
                     case "up":
-                        this.gridMap.moveRobot(new int[]{this.curCoord[0] - 2, this.curCoord[1] + 1}, 90);
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] - 4, this.curCoord[1] + 1}, 90);
                         break;
                     case "left":
-                        this.gridMap.moveRobot(new int[]{this.curCoord[0] - 1, this.curCoord[1] - 2}, 90);
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] - 1, this.curCoord[1] - 4}, 90);
                         break;
                     case "down":
-                        this.gridMap.moveRobot(new int[]{this.curCoord[0] + 2, this.curCoord[1] - 1}, 90);
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] + 4, this.curCoord[1] - 1}, 90);
                         break;
                     case "right":
-                        this.gridMap.moveRobot(new int[]{this.curCoord[0] + 1, this.curCoord[1] + 2}, 90);
+                        this.gridMap.moveRobot(new int[]{this.curCoord[0] + 1, this.curCoord[1] + 4}, 90);
                         break;
                 }
                 this.mainActivity.refreshCoordinate();
