@@ -175,7 +175,17 @@ public class GridMap extends View {
             String[] row = new String[this.OBSTACLE_LIST[outter].length];
             Arrays.fill(row, "");
             this.OBSTACLE_LIST[outter] = row;
+        }
+
+        for (int outter = 0; outter < this.IMAGE_LIST.length; outter++) {
+            String[] row = new String[this.IMAGE_LIST[outter].length];
+            Arrays.fill(row, "");
             this.IMAGE_LIST[outter] = row;
+        }
+
+        for (int outter = 0; outter < GridMap.IMAGE_BEARING.length; outter++) {
+            String[] row = new String[GridMap.IMAGE_BEARING[outter].length];
+            Arrays.fill(row, "");
             GridMap.IMAGE_BEARING[outter] = row;
         }
     }
@@ -216,33 +226,13 @@ public class GridMap extends View {
         // y starts from 1 since 1st column is used for index labels
         for (int x = 1; x <= COL; x++)
             for (int y = 0; y < ROW; y++)
-                if (!cells[x][y].getType().equals("image") && cells[x][y].getId() == -1) {
-                    canvas.drawRect(
-                            cells[x][y].startX,
-                            cells[x][y].startY,
-                            cells[x][y].endX,
-                            cells[x][y].endY,
-                            cells[x][y].paint
-                    );
-                } else {
-                    Paint textPaint = new Paint();
-                    textPaint.setTextSize(25);
-                    textPaint.setColor(Color.WHITE);
-                    textPaint.setTextAlign(Paint.Align.CENTER);
-                    canvas.drawRect(
-                            cells[x][y].startX,
-                            cells[x][y].startY,
-                            cells[x][y].endX,
-                            cells[x][y].endY,
-                            cells[x][y].paint
-                    );
-                    canvas.drawText(
-                            String.valueOf(cells[x][y].getId()),
-                            (cells[x][y].startX + cells[x][y].endX) / 2,
-                            cells[x][y].endY + (cells[x][y].startY - cells[x][y].endY) / 4,
-                            textPaint
-                    );
-                }
+                canvas.drawRect(
+                        cells[x][y].startX,
+                        cells[x][y].startY,
+                        cells[x][y].endX,
+                        cells[x][y].endY,
+                        cells[x][y].paint
+                );
     }
 
     private void drawGridLines(Canvas canvas) {
@@ -404,59 +394,74 @@ public class GridMap extends View {
 
     private void drawObstacles(Canvas canvas) {
         Paint textPaint = new Paint();
-        textPaint.setTextSize(11);
         textPaint.setColor(Color.WHITE);
         textPaint.setTextAlign(Paint.Align.CENTER);
 
         for (int i = 0; i < 20; i++) {
             for (int j = 0; j < 20; j++) {
-                // draw image id
-                canvas.drawText(
-                        OBSTACLE_LIST[19 - i][j],
-                        cells[j + 1][19 - i].startX + ((cells[1][1].endX - cells[1][1].startX) / 2),
-                        cells[j + 1][i].startY + ((cells[1][1].endY - cells[1][1].startY) / 2) + 10,
-                        textPaint
-                );
-
-                // color the face direction
-                switch (IMAGE_BEARING[19 - i][j]) {
-                    case "North":
-                        canvas.drawLine(
-                                cells[j + 1][20 - i].startX,
-                                cells[j + 1][i].startY,
-                                cells[j + 1][20 - i].endX,
-                                cells[j + 1][i].startY,
-                                greenPaint
-                        );
-                        break;
-                    case "South":
-                        canvas.drawLine(
-                                cells[j + 1][20 - i].startX,
-                                cells[j + 1][i].startY + cellSize,
-                                cells[j + 1][20 - i].endX,
-                                cells[j + 1][i].startY + cellSize,
-                                greenPaint
-                        );
-                        break;
-                    case "East":
-                        canvas.drawLine(
-                                cells[j + 1][20 - i].startX + cellSize,
-                                cells[j + 1][i].startY,
-                                cells[j + 1][20 - i].startX + cellSize,
-                                cells[j + 1][i].endY,
-                                greenPaint
-                        );
-                        break;
-                    case "West":
-                        canvas.drawLine(
-                                cells[j + 1][20 - i].startX,
-                                cells[j + 1][i].startY,
-                                cells[j + 1][20 - i].startX,
-                                cells[j + 1][i].endY,
-                                greenPaint
-                        );
-                        break;
+                String displayedText;
+                if (! IMAGE_LIST[19 - i][j].equals("")) {
+                    displayedText = IMAGE_LIST[19 - i][j];
+                    textPaint.setTextSize(17);
+                    canvas.drawText(
+                            displayedText,
+                            cells[j + 1][19 - i].startX + ((cells[1][1].endX - cells[1][1].startX) / 2),
+                            cells[j + 1][i].startY + ((cells[1][1].endY - cells[1][1].startY) / 2) + 10,
+                            textPaint
+                    );
                 }
+                else {
+                    displayedText = OBSTACLE_LIST[19 - i][j];
+                    textPaint.setTextSize(11);
+                    canvas.drawText(
+                            displayedText,
+                            cells[j + 1][19 - i].startX + ((cells[1][1].endX - cells[1][1].startX) / 2),
+                            cells[j + 1][i].startY + ((cells[1][1].endY - cells[1][1].startY) / 2) + 10,
+                            textPaint
+                    );
+
+                    // color the face direction
+                    switch (IMAGE_BEARING[19 - i][j]) {
+                        case "North":
+                            canvas.drawLine(
+                                    cells[j + 1][20 - i].startX,
+                                    cells[j + 1][i].startY,
+                                    cells[j + 1][20 - i].endX,
+                                    cells[j + 1][i].startY,
+                                    greenPaint
+                            );
+                            break;
+                        case "South":
+                            canvas.drawLine(
+                                    cells[j + 1][20 - i].startX,
+                                    cells[j + 1][i].startY + cellSize,
+                                    cells[j + 1][20 - i].endX,
+                                    cells[j + 1][i].startY + cellSize,
+                                    greenPaint
+                            );
+                            break;
+                        case "East":
+                            canvas.drawLine(
+                                    cells[j + 1][20 - i].startX + cellSize,
+                                    cells[j + 1][i].startY,
+                                    cells[j + 1][20 - i].startX + cellSize,
+                                    cells[j + 1][i].endY,
+                                    greenPaint
+                            );
+                            break;
+                        case "West":
+                            canvas.drawLine(
+                                    cells[j + 1][20 - i].startX,
+                                    cells[j + 1][i].startY,
+                                    cells[j + 1][20 - i].startX,
+                                    cells[j + 1][i].endY,
+                                    greenPaint
+                            );
+                            break;
+                    }
+                }
+                // draw image id
+
             }
         }
     }
@@ -936,8 +941,8 @@ public class GridMap extends View {
         this.obstacleCoord = new ArrayList<>();
         mapDrawn = !hardReset;
 
-        for (int i = 0; i < 20; i++) {
-            for (int j = 0; j < 20; j++) {
+        for (int i = 1; i <= 20; i++) {
+            for (int j = 1; j <= 20; j++) {
                 this.setObstacleID("", i, j);
                 this.setImageID("", i, j);
                 this.setImageBearing("", i, j);
@@ -1221,9 +1226,9 @@ public class GridMap extends View {
             if (Integer.parseInt(obstacleID) == currentObstacle[2]) {
                 x = currentObstacle[0];
                 y = currentObstacle[1];
+                this.setImageID(imageID, x, y);
             }
         }
-        this.setImageID(imageID, x, y);
         this.invalidate();
     }
 
