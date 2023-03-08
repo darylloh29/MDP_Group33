@@ -22,31 +22,29 @@ public class LoadMapFragment extends DialogFragment {
 
     private static final String TAG = "LoadMapFragment";
     private SharedPreferences.Editor editor;
-
-    SharedPreferences sharedPreferences;
-
-    Button loadBtn, cancelBtn;
-    String map;
-    View rootView;
+    private SharedPreferences sharedPreferences;
+    private String mapData;
+    private GridMap gridMap;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         showLog("Entering onCreateView");
-        rootView = inflater.inflate(R.layout.activity_load_map, container, false);
+        View rootView = inflater.inflate(R.layout.activity_load_map, container, false);
         super.onCreate(savedInstanceState);
 
-        getDialog().setTitle("Load Map");
-        sharedPreferences = getActivity().getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
-        editor = sharedPreferences.edit();
+        this.getDialog().setTitle("Load Map");
+        this.sharedPreferences = getActivity().getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
+        this.editor = this.sharedPreferences.edit();
 
-        loadBtn = rootView.findViewById(R.id.loadMapBtn);
-        cancelBtn = rootView.findViewById(R.id.cancelLoadMapBtn);
+        Button loadMapBtn = rootView.findViewById(R.id.loadMapBtn);
+        Button cancelLoadMapBtn = rootView.findViewById(R.id.cancelLoadMapBtn);
 
-        map = sharedPreferences.getString("mapChoice","");
+        this.mapData = this.sharedPreferences.getString("mapChoice","");
+        this.gridMap = ((MainActivity) getActivity()).getGridMap();
 
         if (savedInstanceState != null)
-            map = savedInstanceState.getString("mapChoice");
+            this.mapData = savedInstanceState.getString("mapChoice");
 
         final Spinner spinner = (Spinner) rootView.findViewById(R.id.mapDropdownSpinner);
         // Create an ArrayAdapter using the string array and a default spinner layout
@@ -57,49 +55,41 @@ public class LoadMapFragment extends DialogFragment {
         // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
 
-        loadBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showLog("Clicked loadBtn");
-                map = spinner.getSelectedItem().toString();
-                editor.putString("mapChoice", map);
-                String obsPos = sharedPreferences.getString(map,"");
-                if(! obsPos.equals("")) {
-                    String[] obstaclePosition = obsPos.split("\\|");
-                    for (String s : obstaclePosition) {
-                        String[] coords = s.split(",");
-                        coords[3] = "OB" + coords[3];
-                        ((MainActivity)getActivity()).getGridMap().addObstacleCoord(Integer.parseInt(coords[0]), Integer.parseInt(coords[1]), coords[3]);
-                        String direction;
-                        switch (coords[2]) {
-                            case "E":
-                                direction = "East";
-                                break;
-                            case "S":
-                                direction = "South";
-                                break;
-                            case "W":
-                                direction = "West";
-                                break;
-                            default:
-                                direction = "North";
-                        }
-                        GridMap.IMAGE_BEARING[Integer.parseInt(coords[1]) - 1][Integer.parseInt(coords[0]) - 1] = direction;
+        loadMapBtn.setOnClickListener(view -> {
+            this.showLog("Clicked loadMapBtn");
+            this.mapData = spinner.getSelectedItem().toString();
+            this.editor.putString("mapChoice", mapData);
+            String obsPos = this.sharedPreferences.getString(this.mapData,"");
+            if(! obsPos.equals("")) {
+                String[] obstaclePosition = obsPos.split("\\|");
+                for (String s : obstaclePosition) {
+                    String[] coords = s.split(",");
+                    coords[3] = "OB" + coords[3];
+                    this.gridMap.addObstacleCoord(Integer.parseInt(coords[0]), Integer.parseInt(coords[1]), coords[3]);
+                    String direction;
+                    switch (coords[2]) {
+                        case "E":
+                            direction = "East";
+                            break;
+                        case "S":
+                            direction = "South";
+                            break;
+                        case "W":
+                            direction = "West";
+                            break;
+                        default:
+                            direction = "North";
                     }
-                    ((MainActivity)getActivity()).getGridMap().invalidate();
-                    showLog("Exiting Load Button");
+                    this.gridMap.setImageBearing(direction, Integer.parseInt(coords[0]), Integer.parseInt(coords[1]));
                 }
-                getDialog().dismiss();
+                this.gridMap.invalidate();
+                showLog("Exiting Load Button");
             }
+            this.getDialog().dismiss();
         });
 
-        cancelBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showLog("Clicked cancelDirectionBtn");
-                showLog( "Exiting cancelDirectionBtn");
-                getDialog().dismiss();
-            }
+        cancelLoadMapBtn.setOnClickListener(view -> {
+            this.getDialog().dismiss();
         });
         showLog("Exiting onCreateView");
         return rootView;
@@ -107,18 +97,17 @@ public class LoadMapFragment extends DialogFragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        showLog("Entering onSaveInstanceState");
+        this.showLog("Entering onSaveInstanceState");
         super.onSaveInstanceState(outState);
-        loadBtn = rootView.findViewById(R.id.loadMapBtn);
-        showLog("Exiting onSaveInstanceState");
-        outState.putString(TAG, map);
+        this.showLog("Exiting onSaveInstanceState");
+        outState.putString(TAG, this.mapData);
     }
 
     @Override
     public void onDismiss(DialogInterface dialog) {
-        showLog("Entering onDismiss");
+        this.showLog("Entering onDismiss");
         super.onDismiss(dialog);
-        showLog("Exiting onDismiss");
+        this.showLog("Exiting onDismiss");
     }
 
     private void showLog(String message) {
