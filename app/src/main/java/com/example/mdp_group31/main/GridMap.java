@@ -575,35 +575,39 @@ public class GridMap extends View {
                 }
             }
 
-            if (startCoordStatus) {
+            if (this.startCoordStatus) {
                 String direction = getRobotDirection();
                 boolean flag = false;
-                if (canDrawRobot) {
+                if (this.canDrawRobot) {
                     if (direction.equals("None")) {
                         direction = "up";
                     }
 
                     switch (direction) {
                         case "up":
-                            if (initialColumn > 0 && initialColumn < 20 && initialRow > 1 && initialRow <= 20) {
+                            if (this.initialColumn > 0 && this.initialColumn < 20
+                                    && this.initialRow > 1 && this.initialRow <= 20) {
                                 flag = true;
                             }
                             break;
 
                         case "left":
-                            if (initialColumn > 0 && initialColumn < 20 && initialRow >= 1 && initialRow < 20) {
+                            if (this.initialColumn > 0 && this.initialColumn < 20
+                                    && this.initialRow >= 1 && this.initialRow < 20) {
                                 flag = true;
                             }
                             break;
 
                         case "right":
-                            if (initialColumn > 1 && initialColumn <= 20 && initialRow > 1 && initialRow <= 20) {
+                            if (this.initialColumn > 1 && this.initialColumn <= 20
+                                    && this.initialRow > 1 && this.initialRow <= 20) {
                                 flag = true;
                             }
                             break;
 
                         case "down":
-                            if (initialColumn > 1 && initialColumn <= 20 && initialRow > 0 && initialRow < 20) {
+                            if (this.initialColumn > 1 && this.initialColumn <= 20
+                                    && this.initialRow > 0 && this.initialRow < 20) {
                                 flag = true;
                             }
                             break;
@@ -611,8 +615,8 @@ public class GridMap extends View {
 
                     for (int i = 1; i < COL; i ++) {
                         for (int j = 1; j < ROW; j ++) {
-                            if (cells[i][j].type.equals("robot")) {
-                                cells[i][j].setType("explored");
+                            if (cells[i][j].getType().equals("robot")) {
+                                this.updateCells("explored", i, j);
                             }
                         }
                     }
@@ -620,8 +624,8 @@ public class GridMap extends View {
 
                 if (flag) {
                     this.setStartCoord(initialColumn, initialRow);
-                    startCoordStatus = false;
-                    this.updateRobotAxis(initialColumn, initialRow, direction);
+                    this.startCoordStatus = false;
+                    this.updateRobotAxis(this.initialColumn, this.initialRow, direction);
                     if (setStartPointToggleBtn.isChecked())
                         setStartPointToggleBtn.toggle();
                 }
@@ -631,10 +635,9 @@ public class GridMap extends View {
             }
 
             // add id and the image bearing, popup to ask for user input
-            if (setObstacleStatus) {
-                if (initialRow <= 20 && initialColumn <= 20) {
-                    OBSTACLE_LIST[initialRow - 1][initialColumn - 1] = "OB0";
-                    IMAGE_BEARING[initialRow - 1][initialColumn - 1] = "North";
+            if (this.setObstacleStatus) {
+                if (this.initialRow <= 20 && this.initialColumn <= 20) {
+                    this.setImageBearing("North", this.initialColumn, this.initialRow);
                     this.addObstacleCoord(initialColumn, initialRow, "OB0");
                 }
                 this.invalidate();
@@ -786,6 +789,7 @@ public class GridMap extends View {
 
     /**
      * Registers an obstacle at [col, row]
+     * Adds to OBSTACLE_LIST and obstacleCoord ArrayList
      * @param col The x-coord of the obstacle
      * @param row The y-coord of the obstacle
      * @param obstacleID The ID of the obstacle
@@ -806,7 +810,10 @@ public class GridMap extends View {
         return this.obstacleCoord;
     }
 
-
+    /**
+     * Debug method to display message
+     * @param message The message to be displayed.
+     */
     private static void Logd(String message) {
         Log.d(TAG, message);
     }
@@ -868,6 +875,9 @@ public class GridMap extends View {
 
     /**
      * Removes an obstacle when it is dropped out of the map
+     * Drops from obstacleCoord ArrayList
+     * Removes from OBSTACLE_LIST, IMAGE_BEARING
+     * Resets cell to unexplored
      * @param obstacleID The ID of the obstacle to be removed
      * @param x The x-coord of the obstacle
      * @param y The y-coord of the obstacle
@@ -1229,6 +1239,7 @@ public class GridMap extends View {
 
     /**
      * Sets the obstacleID for the obstacle at [x,y]
+     * Adds in the OBSTACLE_LIST
      * @param obstacleID The obstacleID of the obstacle
      * @param x The x-coord of the obstacle
      * @param y The y-coord of the obstacle
