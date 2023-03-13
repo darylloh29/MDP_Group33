@@ -19,10 +19,21 @@
     <string name="f1Placeholder">Enter F1 value</string>
     <string name="f2Placeholder">Enter F2 value</string>
     <string name="save">SAVE</string>
-    <string name="cancel">CANCEL</string>
+    <string name="cancel">Cancel</string>
 
     <!-- Map -->
     <string name="manual">MANUAL</string>
     <string name="auto">AUTO</string>
+    <string name="status_not_available">Not Available</string>
+    <string name="image_rec_end">Image Rec Completed</string>
+    <string name="fastest_car_end">Fastest Car Completed</string>
+    <string name="bt_disconnect">Disconnected</string>
+    <string name="bt_connected">Connected</string>
+    <string name="img_rec_stop">Image Recognition Completed</string>
+    <string name="img_rec_start">Image Recognition Started</string>
+    <string name="fastest_car_stop">Fastest Car Completed</string>
+    <string name="fastest_car_start">Fastest Car Started</string>
+    <string name="timer_default_val">00:00</string>
+    <string name="robot_status_na">Not Available</string>
 
 </resources>
