@@ -1,6 +1,7 @@
 # Android Module
 
 ## Project Structure
+```
 .
 ├── .idea/                  ## run config
 ├── app/
@@ -20,7 +21,7 @@
 ├── gradlew.bat             ## gradle scripts
 ├── README.md
 └── settings
-
+```
 ## Version
 * JDK 11.0
 * Gradle 7.5
