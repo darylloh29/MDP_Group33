@@ -25,3 +25,6 @@
 ## Version
 * JDK 11.0
 * Gradle 7.5
+
+## Juniors
+God bless that you found this repo. Thank Lee Juin the god for refactoring the codes.
