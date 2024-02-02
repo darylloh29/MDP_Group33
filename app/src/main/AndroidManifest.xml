@@ -3,9 +3,10 @@
     xmlns:dist="http://schemas.android.com/apk/distribution"
     package="com.example.mdp_group31">
 
+     <!-- This means that this application is an instant application module-->
     <dist:module dist:instant="true" />
 
-    <!--Added permission for bluetooth connection -->
+    <!--Added permissions required for Bluetooth connection -->
     <uses-feature android:name="android.hardware.bluetooth" />
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
