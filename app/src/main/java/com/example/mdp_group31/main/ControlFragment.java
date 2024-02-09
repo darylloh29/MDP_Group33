@@ -18,6 +18,10 @@ import com.example.mdp_group31.MainActivity;
 import com.example.mdp_group31.R;
 import java.util.Locale;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONArray;
+
 /**
  * ControlFragment is a Fragment class that displays the control buttons and timers for the robot in the
  * MainActivity.
@@ -257,7 +261,14 @@ public class ControlFragment extends Fragment {
                 this.showToast("Image Recognition Started!!");
                 String getObsPos = this.gridMap.getAllObstacles();
                 getObsPos = "OBS|" + getObsPos;
-                this.mainActivity.sendMessage(getObsPos);
+                JSONObject obsJson = new JSONObject();
+                try {
+                    obsJson.put("category","algo");
+                    obsJson.put("value", getObsPos);
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+                this.mainActivity.sendMessage(obsJson.toString());
                 this.robotStatusText.setText(R.string.img_rec_start);
                 this.imgRecTime = System.currentTimeMillis();
                 timerHandler.postDelayed(imgRecTimer, 0);
