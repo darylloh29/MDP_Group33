@@ -209,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Getter function for getting the connecteed bluetooth device name
+     * Getter function for getting the connected bluetooth device name
      * Used in {@link BluetoothConnectionService}
      * @return DEVICE_NAME
      */
