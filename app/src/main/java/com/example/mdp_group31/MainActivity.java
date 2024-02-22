@@ -231,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public void sendMessage(String message) {
         this.editor = this.sharedPreferences.edit();
-        message += "\n";
+//        message += "\n";
         if (BluetoothConnectionService.BluetoothConnectionStatus) {
             byte[] bytes = message.getBytes(Charset.defaultCharset());
             // Send the size of bytes to be sent, followed by a newline character
@@ -248,6 +248,7 @@ public class MainActivity extends AppCompatActivity {
      * @param message Last message that was sent over via BT
      */
     public void printMessage(String message) {
+        message += "\n";
         this.btFragment.getMessageReceivedTextView().append(message);
     }
 
@@ -332,7 +333,6 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra("receivedMessage");
             System.out.println("debug" + message);
-            Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
             if (message != null) {
                 try {
                     JSONObject json = new JSONObject(message);

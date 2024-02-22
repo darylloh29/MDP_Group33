@@ -152,6 +152,7 @@ public class ControlFragment extends Fragment {
             if (this.gridMap.getCanDrawRobot()) {
                 this.curCoord = this.gridMap.getCurCoord();
                 this.direction = this.gridMap.getRobotDirection();
+                mainActivity.sendMessage("f");
                 // handles translation based on existing direction
                 switch (this.direction) {
                     case "up":
@@ -178,6 +179,7 @@ public class ControlFragment extends Fragment {
             if (this.gridMap.getCanDrawRobot()) {
                 this.curCoord = this.gridMap.getCurCoord();
                 this.direction = this.gridMap.getRobotDirection();
+                mainActivity.sendMessage("tr");
                 switch (this.direction) {
                     case "up":
                         this.gridMap.moveRobot(new int[]{this.curCoord[0] + 4, this.curCoord[1] + 2}, -90);
@@ -203,6 +205,7 @@ public class ControlFragment extends Fragment {
             if (this.gridMap.getCanDrawRobot()) {
                 this.curCoord = this.gridMap.getCurCoord();
                 this.direction = this.gridMap.getRobotDirection();
+                mainActivity.sendMessage("r");
                 switch (this.direction) {
                     case "up":
                         this.gridMap.moveRobot(new int[]{this.curCoord[0], this.curCoord[1] - 1}, 0);
@@ -228,6 +231,7 @@ public class ControlFragment extends Fragment {
             if (this.gridMap.getCanDrawRobot()) {
                 this.curCoord = this.gridMap.getCurCoord();
                 this.direction = this.gridMap.getRobotDirection();
+                mainActivity.sendMessage("tl");
                 switch (this.direction) {
                     case "up":
                         this.gridMap.moveRobot(new int[]{this.curCoord[0] - 4, this.curCoord[1] + 1}, 90);
@@ -258,6 +262,7 @@ public class ControlFragment extends Fragment {
             // changed from START to STOP (i.e. started challenge)
             else if (this.imgRecBtn.getText().equals("STOP")) {
                 this.mainActivity.imgRecTimerFlag = false;
+                mainActivity.sendMessage("beginExplore");
                 this.showToast("Image Recognition Started!!");
                 String getObsPos = this.gridMap.getAllObstacles();
                 getObsPos = "OBS|" + getObsPos;
@@ -268,7 +273,7 @@ public class ControlFragment extends Fragment {
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
-                this.mainActivity.sendMessage(obsJson.toString());
+//                this.mainActivity.sendMessage(obsJson.toString());
                 this.robotStatusText.setText(R.string.img_rec_start);
                 this.imgRecTime = System.currentTimeMillis();
                 timerHandler.postDelayed(imgRecTimer, 0);
