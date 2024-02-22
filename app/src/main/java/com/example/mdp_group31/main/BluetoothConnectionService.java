@@ -77,7 +77,7 @@ public class BluetoothConnectionService {
     /**
      * A name for the app
      */
-    private static final String appName = "MDP_Group_31";
+    private static final String appName = "MDP_Group_33";
     /**
      * A unique identifier for this app
      */
