@@ -33,6 +33,9 @@ import com.example.mdp_group31.main.SectionsPagerAdapter;
 
 import com.google.android.material.tabs.TabLayout;
 
+import org.json.JSONObject;
+import org.json.JSONException;
+
 import java.nio.charset.Charset;
 
 
@@ -329,6 +332,17 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra("receivedMessage");
             System.out.println("debug" + message);
+            Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+            if (message != null) {
+                try {
+                    JSONObject json = new JSONObject(message);
+                    if (json.getString("category").equals("status")) {
+                        robotStatusText.setText(json.getString("value"));
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, "Failed to parse status JSON");
+                }
+            }
             if (message.contains("IMG")) {
                 String[] cmd = message.split("-");
                 gridMap.updateImageID(cmd[1], cmd[2]);
